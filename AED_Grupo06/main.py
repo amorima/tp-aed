@@ -1,4 +1,7 @@
-
+#Ficheiro .py apresentação da aplicação
+#Biblioteca
+#-----------
+import os
 import time
 
 
