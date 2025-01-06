@@ -4,7 +4,9 @@
 import os
 #Files
 #-----------------------------------
-user_db=".\\files\\users.txt"
+user_db=".\\files\\user.txt"
+category_db=".\\files\\categories.txt"
+catalog_db=".\\files\\catalog.txt"
 
 #Funções
 #-----------------------------------------------------
