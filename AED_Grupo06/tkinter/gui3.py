@@ -4,6 +4,7 @@
 
 
 from pathlib import Path
+import os
 
 # from tkinter import *
 # Explicit imports to satisfy Flake8
@@ -11,7 +12,11 @@ from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
 
 
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"G:\O meu disco\Pessoal\Universidade\ESMAD\AULAS\AED\Tkinter-Designer\Final4\build\assets\frame3")
+ASSETS_PATH = OUTPUT_PATH / Path(r".\\assets\\frame3")
+#Retorna o caminho absoluto do ficheiro Python atualmente em execução.
+root_dir = os.path.dirname(os.path.abspath(__file__))
+#Altera o diretório atual para o diretório do ficheiro python
+os.chdir(root_dir)
 
 
 def relative_to_assets(path: str) -> Path:
@@ -49,6 +54,7 @@ button_1 = Button(
     image=button_image_1,
     borderwidth=0,
     highlightthickness=0,
+    activebackground= "#121212",
     command=lambda: print("button_1 clicked"),
     relief="flat"
 )
@@ -65,13 +71,14 @@ button_2 = Button(
     image=button_image_2,
     borderwidth=0,
     highlightthickness=0,
+    activebackground= "#121212",
     command=lambda: print("button_2 clicked"),
     relief="flat"
 )
 button_2.place(
     x=32.96923828125,
     y=278.0,
-    width=73.03076171875,
+    width=71.0,
     height=90.0
 )
 
@@ -81,14 +88,15 @@ button_3 = Button(
     image=button_image_3,
     borderwidth=0,
     highlightthickness=0,
+    activebackground= "#121212",
     command=lambda: print("button_3 clicked"),
     relief="flat"
 )
 button_3.place(
-    x=33.0,
+    x=32.96923828125,
     y=408.0,
-    width=73.0,
-    height=81.03504180908203
+    width=70.0,
+    height=80.0
 )
 
 button_image_4 = PhotoImage(
@@ -97,14 +105,15 @@ button_4 = Button(
     image=button_image_4,
     borderwidth=0,
     highlightthickness=0,
+    activebackground= "#121212",
     command=lambda: print("button_4 clicked"),
     relief="flat"
 )
 button_4.place(
     x=32.96923828125,
     y=533.6724853515625,
-    width=73.03076171875,
-    height=89.3275146484375
+    width=72,
+    height=87
 )
 
 canvas.create_text(
