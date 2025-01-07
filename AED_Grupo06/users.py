@@ -70,11 +70,11 @@ def logIn(username,password,mail,tab):
     userList=lerFicheiro(user_db)
     for userLine in userList:
         campos = userLine.split(";")
-        if username == campos[0] and password == campos[1]:
+        if mail == campos[2] and password == campos[1]:
             userExists=True
             tab.add("Home")
             tab.delete("Login/Sign In")
-        elif username==campos[0]:
+        elif mail==campos[2]:
             userExists=True
             CTkMessagebox.CTkMessagebox(title="LogIn", message="Password Incorreta",icon="warning", option_1="Ok") #Pop up Password
     if userExists==False:
