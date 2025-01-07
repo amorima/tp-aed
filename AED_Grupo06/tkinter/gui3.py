@@ -9,7 +9,7 @@ from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
 
 
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r".\\assets\\frame3")
+ASSETS_PATH = OUTPUT_PATH / Path(r".\tkinter\assets\frame3")
 #Retorna o caminho absoluto do ficheiro Python atualmente em execução.
 root_dir = os.path.dirname(os.path.abspath(__file__))
 #Altera o diretório atual para o diretório do ficheiro python
