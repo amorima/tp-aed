@@ -22,21 +22,10 @@ def toggle_password_visibility(entry):
 
 def update_active_screen(button):
     global selected_button
-
-    # Verifique se o botão anterior é válido
-    if selected_button is not None:
-        try:
-            selected_button.configure(fg_color="transparent")  # Reset o botão anterior
-        except Exception as e:
-            print(f"Erro ao redefinir botão anterior: {e}")
-
-    # Configure o novo botão como selecionado
-    try:
-        button.configure(fg_color="#181818")  # Cor para botão selecionado
-        selected_button = button
-    except Exception as e:
-        print(f"Erro ao configurar botão atual: {e}")
-
+    if selected_button:
+        selected_button.configure(fg_color="transparent")
+    button.configure(fg_color="#181818")
+    selected_button = button
 
 
 
