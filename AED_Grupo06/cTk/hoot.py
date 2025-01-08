@@ -101,6 +101,71 @@ def iniciar_app():
                            height=36)
     button_criar_conta.place(x=513, y=601)
 
+def criar_conta():
+    """Inicializa a aplicação principal."""
+    # Limpar a janela atual
+    for widget in app.winfo_children():
+        widget.destroy()
+
+    ctk.set_appearance_mode("light")
+
+    promo = ctk.CTkImage(Image.open('./img/promo.png'), size=(468, 675))
+    label_promo = ctk.CTkLabel(app, text="", image=promo)
+    label_promo.place(relx=0.0, rely=0.5, anchor="w")
+
+    rotulo = ctk.CTkLabel(app, text="Criar Conta", font=("Helvetica", 24, "bold"), text_color="#4F8377")
+    rotulo.place(x=513, y=36)
+
+    rotulo = ctk.CTkLabel(app, text="USERNAME", font=("Helvetica", 10, "bold"), text_color="#000")
+    rotulo.place(x=513, y=112)
+
+    entry_username = ctk.CTkEntry(app,
+                         width=451,
+                         height=43,
+                         border_width=0,
+                         placeholder_text="Insira um username",
+                         fg_color="#D9D9D9",
+                         font=("Helvetica", 16),
+                         )
+    entry_username.place(x=513, y=134)  # Posicionar a textbox no local desejado
+
+    rotulo = ctk.CTkLabel(app, text="E-MAIL", font=("Helvetica", 10, "bold"), text_color="#000")
+    rotulo.place(x=513, y=208)
+
+    entry_email = ctk.CTkEntry(app,
+                         width=451,
+                         height=43,
+                         border_width=0,
+                         placeholder_text="Insira um e-mail",
+                         fg_color="#D9D9D9",
+                         font=("Helvetica", 16),
+                         )
+    entry_email.place(x=513, y=231)  # Posicionar a textbox no local desejado
+
+    rotulo = ctk.CTkLabel(app, text="PALAVRA-PASSE", font=("Helvetica", 10, "bold"), text_color="#000")
+    rotulo.place(x=513, y=305)
+
+    entry_password = ctk.CTkEntry(app,
+                         width=451,
+                         height=43,
+                         border_width=0,
+                         placeholder_text="Insira uma palavra-passe",
+                         show="*",
+                         fg_color="#D9D9D9",
+                         font=("Helvetica", 16),
+                         )
+    entry_password.place(x=513, y=328)  # Posicionar a textbox no local desejado
+
+    button_criar_conta = ctk.CTkButton(app,
+                           text='CRIAR CONTA',
+                           font=("Helvetica", 14.3, "bold"),
+                           text_color="#fff",
+                           hover_color="#E1B037",
+                           fg_color="#4F8377",
+                           width=173,
+                           height=36)
+    button_criar_conta.place(x=513, y=414)
+
 #########################
 #### CONFIGURAÇÕES ######
 #########################
@@ -153,6 +218,7 @@ app.resizable(False, False)
 #### INÍCIO DA APP ####
 #######################
 splashscreen()
+app.after(5000, criar_conta)
 
 # Iniciar o loop da interface gráfica
 app.mainloop()
