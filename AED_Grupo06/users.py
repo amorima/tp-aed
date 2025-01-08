@@ -25,7 +25,7 @@ def passwordChecker(password):
     -Use at least one special caracther
     Return if the password matches every requirement(True or ErrorMsm)
     """
-    minLenght = capitalUsed = numberUsed = specialUsed = False
+    minLenght = capitalUsed = numberUsed = specialUsed = splitterUsed = False
     #Lenght Checker
     #----------------------
     if len(password) >= 8:
@@ -42,8 +42,10 @@ def passwordChecker(password):
         # Check for special characters
         if not letter.isalnum():
             specialUsed = True
-    shortMsm=capitalMsm=numberMsm=specialMsm=""
-    if minLenght and capitalUsed and numberUsed and specialUsed: 
+        if letter==";":
+            splitterUsed=True 
+    shortMsm=capitalMsm=numberMsm=specialMsm=splitterMsm=""
+    if minLenght and capitalUsed and numberUsed and specialUsed and splitterUsed==False: 
         return "True"
     if not minLenght:
         shortMsm="-Too short(8 caracther minimun)\n"
@@ -53,14 +55,16 @@ def passwordChecker(password):
         numberMsm="-Should use at least one number\n"
     if not specialUsed:
         specialMsm="-Should use at least one Speacial Caracther\n"
-    Msm=shortMsm+capitalMsm+numberMsm+specialMsm
+    if splitterUsed:
+        splitterMsm="-Caracther ; is invalid\n"
+    Msm=shortMsm+capitalMsm+numberMsm+specialMsm+splitterMsm
     return Msm
 
-def logIn(username,password,mail,tab):
+def logIn(password,mail):
     """
     A função recebe a procura o username na lista
-    User&Pass Corret-Entra na aplicação
-    User Corret-Aviso de password errado
+    Email&Pass Corret-Entra na aplicação
+    Email Corret-Aviso de password errado
 
     Formato do ficheiro user_db
         Username;Password;Email;Admin/User
@@ -72,8 +76,6 @@ def logIn(username,password,mail,tab):
         campos = userLine.split(";")
         if mail == campos[2] and password == campos[1]:
             userExists=True
-            tab.add("Home")
-            tab.delete("Login/Sign In")
         elif mail==campos[2]:
             userExists=True
             CTkMessagebox.CTkMessagebox(title="LogIn", message="Password Incorreta",icon="warning", option_1="Ok") #Pop up Password
