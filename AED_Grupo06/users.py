@@ -95,36 +95,48 @@ def sign(user,password,mail,next):
     """
     validPassword = passwordChecker(password)
     validMail = emailChecker(mail)
+    validUser = True
+    for letter in user:
+        if letter ==";":
+            validUser=False
     if len(user) >= 4:
         if validPassword == "True":
             if validMail == "True":
-                userExist = False
-                userList = lerFicheiro(user_db)
-                for userLine in userList:
-                    campo = userLine.split(";")
-                    if campo[0] == user:
-                        userExist = True
-                        CTkMessagebox.CTkMessagebox(
-                            title="Sign in", 
-                            message="Usuario já Existe", 
-                            icon="warning", 
-                            option_1="Ok"
-                        )
-                        return  # Não continua com a criação do usuário
-                for userLine in userList:
-                    campo = userLine.split(";")
-                    if campo[2] == mail:
-                        userExist = True    
-                        CTkMessagebox.CTkMessagebox(
-                            title="Sign in", 
-                            message="Email já Registado", 
-                            icon="warning", 
-                            option_1="Ok"
-                        )
-                if not userExist:
-                    with open(user_db, "a", encoding="utf-8") as f:
-                        f.write(f"{user};{password};{mail};User\n")
-                    next()  # Chama a próxima função apenas quando o cadastro for bem-sucedido
+                if validUser == True:
+                    userExist = False
+                    userList = lerFicheiro(user_db)
+                    for userLine in userList:
+                        campo = userLine.split(";")
+                        if campo[0] == user:
+                            userExist = True
+                            CTkMessagebox.CTkMessagebox(
+                                title="Sign in", 
+                                message="Usuario já Existe", 
+                                icon="warning", 
+                                option_1="Ok"
+                            )
+                            return  # Não continua com a criação do usuário
+                    for userLine in userList:
+                        campo = userLine.split(";")
+                        if campo[2] == mail:
+                            userExist = True    
+                            CTkMessagebox.CTkMessagebox(
+                                title="Sign in", 
+                                message="Email já Registado", 
+                                icon="warning", 
+                                option_1="Ok"
+                            )
+                    if not userExist:
+                        with open(user_db, "a", encoding="utf-8") as f:
+                            f.write(f"{user};{password};{mail};User\n")
+                        next()  # Chama a próxima função apenas quando o cadastro for bem-sucedido
+                else:
+                    CTkMessagebox.CTkMessagebox(
+                    title="Sign in", 
+                    message="User Invalido", 
+                    icon="warning", 
+                    option_1="Ok"
+                )
             else:
                 CTkMessagebox.CTkMessagebox(
                     title="Sign in", 
@@ -159,3 +171,4 @@ def emailChecker(email):
         if letter ==";" :
             valid = ""
     return valid
+
