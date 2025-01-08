@@ -2,13 +2,12 @@
 #Biblioteca
 #-----------
 import os
-import time
-import threading
 import customtkinter as ctk
+from PIL import Image
+
 from users import *
 
-from PIL import Image
-import os
+
 
 #######################
 ####### FUNÇÕES #######
@@ -104,7 +103,7 @@ def iniciar_app():
                            text_color="#000",
                            hover_color="#D59C2A",
                            fg_color="#F2C94C",
-                           command= lambda:logIn(entry_password.get(),entry_email.get()),                           
+                           command= lambda:logIn(entry_password.get(),entry_email.get(),criar_conta),                           
                            width=173,
                            height=36)
     button_iniciar_sessao.place(x=513, y=297)
