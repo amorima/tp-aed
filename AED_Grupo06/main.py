@@ -11,7 +11,7 @@ from users import *
 ####### FUNÇÕES #######
 #######################
 # Global variable to keep track of the currently selected button
-selected_button = None
+selected_button = None 
 
 def toggle_password_visibility(entry):
     if entry.cget("show") == "*":
@@ -19,12 +19,26 @@ def toggle_password_visibility(entry):
     else:
         entry.configure(show="*")  # Hide the text
 
+
 def update_active_screen(button):
     global selected_button
-    if selected_button:
-        selected_button.configure(fg_color="transparent")  # Reset the previous button's color
-    button.configure(fg_color="#181818")  # Set the selected button's color
-    selected_button = button
+
+    # Verifique se o botão anterior é válido
+    if selected_button is not None:
+        try:
+            selected_button.configure(fg_color="transparent")  # Reset o botão anterior
+        except Exception as e:
+            print(f"Erro ao redefinir botão anterior: {e}")
+
+    # Configure o novo botão como selecionado
+    try:
+        button.configure(fg_color="#181818")  # Cor para botão selecionado
+        selected_button = button
+    except Exception as e:
+        print(f"Erro ao configurar botão atual: {e}")
+
+
+
 
 def menu_lateral():
     logo_p = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 48))
@@ -45,7 +59,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_series_image,
-        command=lambda: [update_active_screen(botao_series), ecra_principal()],
+        command=lambda: [update_active_screen(botao_series), ecra_principal],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -62,7 +76,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_filmes_image,
-        command=lambda: [update_active_screen(botao_filmes), ecra_principal()],
+        command=lambda: [update_active_screen(botao_filmes), ecra_principal],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -79,7 +93,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_explorar_image,
-        command=lambda: [update_active_screen(botao_explorar), ecra_principal()],
+        command=lambda: [update_active_screen(botao_explorar), ecra_principal],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     )
@@ -96,7 +110,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_perfil_image,
-        command=lambda: [update_active_screen(botao_perfil), ecra_principal()],
+        command=lambda: [update_active_screen(botao_perfil), ecra_principal],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     )
