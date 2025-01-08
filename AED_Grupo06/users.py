@@ -3,7 +3,6 @@
 #-------------------
 import os
 import CTkMessagebox
-from main import iniciar_app
 #Files
 #-----------------------------------
 user_db=".\\files\\users.txt"
@@ -83,7 +82,7 @@ def logIn(password,mail):
     if userExists==False:
         CTkMessagebox.CTkMessagebox(title="LogIn", message="User não existe \nPor favor faça Sign In",icon="warning", option_1="Ok") #Pop up Sign In
 
-def sign(user,password,mail):
+def sign(user,password,mail,next):
     """
     A função recebe e procura o user na lista
     UserNotFound & PasswordValida - Aceita logIn
@@ -108,6 +107,7 @@ def sign(user,password,mail):
                 f = open(user_db, "a", encoding="utf-8")
                 f.write(user+";"+password+";"+mail+";User\n")
                 f.close()
+                return next()
         else:
             CTkMessagebox.CTkMessagebox(title="Sign in", message="The password is:\n"+validPassword,icon="warning", option_1="Ok")
     else:

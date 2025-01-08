@@ -3,3 +3,5 @@ MyProfile;ABCdef#66;ruca@ofilho.gmail.com;User
 Antonio Amorim;supperPassAntony34%;antonio.ogrande@gmail.com;User
 Henrique;123#asdASD;henrique.medio@gmail.com;User
 Gabriel;qwertyu123$A;mr,sousapuasb 2ganicme.com;User
+qwerty;qwe1A"aa;qew;User
+qwertyp;Aa1!qwerty;email@gmail.com;User
