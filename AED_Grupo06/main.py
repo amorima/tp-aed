@@ -165,6 +165,24 @@ def criar_conta():
                          font=("Helvetica", 16),
                          )
     entry_password.place(x=513, y=328)  # Posicionar a textbox no local desejado
+    def toggle_password_visibility():
+        if entry_password.cget("show") == "*":
+            entry_password.configure(show="")  # Show the text
+        else:
+            entry_password.configure(show="*")  # Hide the text
+
+    # Button to toggle password visibility
+    toggle_button = ctk.CTkButton(app,
+                        text="👁",  # Use an eye emoji or another icon
+                        font=("Helvetica", 14),
+                        width=36,
+                        height=36,
+                        fg_color="#D9D9D9",
+                        hover_color="#B0B0B0",
+                        text_color="#000",
+                        command=toggle_password_visibility)
+    toggle_button.place(x=975, y=328)  # Position the button near the password field
+
 
     button_criar_conta = ctk.CTkButton(app,
                            text='CRIAR CONTA',

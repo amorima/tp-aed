@@ -6,3 +6,5 @@ Gabriel;qwertyu123$A;mr,sousapuasb 2ganicme.com;User
 qwerty;qwe1A"aa;qew;User
 qwertyp;Aa1!qwerty;email@gmail.com;User
 Username de Teste;palavraChave123#;test@gmail.com;User
+Tester;tester123#A;tester@mail.com;User
+qwertyua;123#Ab78;mail;User
