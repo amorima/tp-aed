@@ -8,3 +8,4 @@ qwertyp;Aa1!qwerty;email@gmail.com;User
 Username de Teste;palavraChave123#;test@gmail.com;User
 Tester;tester123#A;tester@mail.com;User
 qwertyua;123#Ab78;mail;User
+qwertyui;QWErty123#;qwertyui;User

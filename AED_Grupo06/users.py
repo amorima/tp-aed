@@ -93,23 +93,40 @@ def sign(user,password,mail,next):
         Username;Password;Admin/User
     O ultimo campo é preenchido como User como default 
     """
-    validPassword=passwordChecker(password)
-    if len(user)>=4:
-        if validPassword=="True":
-            userExist=False
-            userList=lerFicheiro(user_db)
+    validPassword = passwordChecker(password)
+    if len(user) >= 4:
+        if validPassword == "True":
+            userExist = False
+            userList = lerFicheiro(user_db)
             for userLine in userList:
-                campo= userLine.split(";")
-                if campo[0]==user:
-                    userExist=True
-                    CTkMessagebox.CTkMessagebox(title="Sign in", message="Usuario já Existe",icon="warning", option_1="Ok")
-                    return
-            if userExist==False:
+                campo = userLine.split(";")
+                if campo[0] == user:
+                    userExist = True
+                    CTkMessagebox.CTkMessagebox(
+                        title="Sign in", 
+                        message="Usuario já Existe", 
+                        icon="warning", 
+                        option_1="Ok"
+                    )
+                    return  # Não continua com a criação do usuário
+                
+            if not userExist:
                 with open(user_db, "a", encoding="utf-8") as f:
                     f.write(f"{user};{password};{mail};User\n")
-                return next
+                next()  # Chama a próxima função apenas quando o cadastro for bem-sucedido
         else:
-            CTkMessagebox.CTkMessagebox(title="Sign in", message="The password is:\n"+validPassword,icon="warning", option_1="Ok")
+            CTkMessagebox.CTkMessagebox(
+                title="Sign in", 
+                message="The password is:\n" + validPassword, 
+                icon="warning", 
+                option_1="Ok"
+            )
     else:
-        CTkMessagebox.CTkMessagebox(title="Sign in", message="Username deve ter no minimo 4 caratheres",icon="warning", option_1="Ok")
+        CTkMessagebox.CTkMessagebox(
+            title="Sign in", 
+            message="Username deve ter no minimo 4 caratheres", 
+            icon="warning", 
+            option_1="Ok"
+        )
+
 
