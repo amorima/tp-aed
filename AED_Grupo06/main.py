@@ -14,6 +14,12 @@ import os
 ####### FUNÇÕES #######
 #######################
 
+def toggle_password_visibility():
+    if entry_password.cget("show") == "*":
+        entry_password.configure(show="")  # Show the text
+    else:
+        entry_password.configure(show="*")  # Hide the text
+
 def splashscreen():
     """Cria a splashscreen da app."""
     # Limpar a janela atual
@@ -26,8 +32,7 @@ def splashscreen():
     label_logo.place(relx=0.5, rely=0.5, anchor="center")  # Centraliza o logótipo
 
     # Agendar a transição para a próxima função
-    app.after(3000, iniciar_app)  # Transita para `iniciar_app` após 3 segundos
-
+    app.after(1500, iniciar_app)  # Transita para `iniciar_app` após 3 segundos
 
 def iniciar_app():
     """Inicializa a aplicação principal."""
@@ -104,7 +109,7 @@ def iniciar_app():
                            text='CRIAR CONTA',
                            font=("Helvetica", 14.3, "bold"),
                            text_color="#fff",
-                           hover_color="#E1B037",
+                           hover_color="#3F685F",
                            fg_color="#4F8377",
                            command=lambda:criar_conta(),
                            width=173,
@@ -165,30 +170,26 @@ def criar_conta():
                          font=("Helvetica", 16),
                          )
     entry_password.place(x=513, y=328)  # Posicionar a textbox no local desejado
-    def toggle_password_visibility():
-        if entry_password.cget("show") == "*":
-            entry_password.configure(show="")  # Show the text
-        else:
-            entry_password.configure(show="*")  # Hide the text
 
     # Button to toggle password visibility
     toggle_button = ctk.CTkButton(app,
                         text="👁",  # Use an eye emoji or another icon
                         font=("Helvetica", 14),
-                        width=36,
-                        height=36,
-                        fg_color="#D9D9D9",
+                        width=35,
+                        height=35,
+                        fg_color="#C9C4C4",
+                        bg_color= "#D9D9D9",
                         hover_color="#B0B0B0",
                         text_color="#000",
-                        command=toggle_password_visibility)
-    toggle_button.place(x=975, y=328)  # Position the button near the password field
+                        command=lambda:toggle_password_visibility())
+    toggle_button.place(x=923, y=332)  # Position the button near the password field
 
 
     button_criar_conta = ctk.CTkButton(app,
                            text='CRIAR CONTA',
                            font=("Helvetica", 14.3, "bold"),
                            text_color="#fff",
-                           hover_color="#E1B037",
+                           hover_color="#3F685F",
                            fg_color="#4F8377",
                            command=lambda:sign(entry_username.get(),entry_password.get(),entry_email.get(),iniciar_app()),
                            width=173,
