@@ -76,6 +76,19 @@ def iniciar_app():
                          )
     entry_password.place(x=513, y=191)  # Posicionar a textbox no local desejado
 
+    # Button to toggle password visibility
+    toggle_button = ctk.CTkButton(app,
+                        text="👁",  # Use an eye emoji or another icon
+                        font=("Helvetica", 14),
+                        width=35,
+                        height=35,
+                        fg_color="#C9C4C4",
+                        bg_color= "#D9D9D9",
+                        hover_color="#B0B0B0",
+                        text_color="#000",
+                        command=lambda:toggle_password_visibility(entry_password))
+    toggle_button.place(x=1100, y=956)  # Position the button near the password field
+
     # Criar o texto clicável
     clickable_text = ctk.CTkLabel(app,
                                   text="Esqueceste-te da tua palavra passe?",
