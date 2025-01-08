@@ -60,8 +60,9 @@ def passwordChecker(password):
     Msm=shortMsm+capitalMsm+numberMsm+specialMsm+splitterMsm
     return Msm
 
-def logIn(password,mail):
+def logIn(password,mail,next):
     """
+    next-proxima ação a fazer
     A função recebe a procura o username na lista
     Email&Pass Corret-Entra na aplicação
     Email Corret-Aviso de password errado
@@ -70,15 +71,16 @@ def logIn(password,mail):
         Username;Password;Email;Admin/User
     O ultimo campo é preenchido como User como default 
     """
-    userExists=False
     userList=lerFicheiro(user_db)
+    userExists=False
     for userLine in userList:
         campos = userLine.split(";")
         if mail == campos[2] and password == campos[1]:
-            userExists=True
+            next()
+            return
         elif mail==campos[2]:
-            userExists=True
             CTkMessagebox.CTkMessagebox(title="LogIn", message="Password Incorreta",icon="warning", option_1="Ok") #Pop up Password
+            return
     if userExists==False:
         CTkMessagebox.CTkMessagebox(title="LogIn", message="User não existe \nPor favor faça Sign In",icon="warning", option_1="Ok") #Pop up Sign In
 
