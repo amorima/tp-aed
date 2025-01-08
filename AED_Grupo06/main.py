@@ -82,12 +82,12 @@ def iniciar_app():
                         font=("Helvetica", 14),
                         width=35,
                         height=35,
-                        fg_color="#C9C4C4",
+                        fg_color="#D9D9D9",
                         bg_color= "#D9D9D9",
                         hover_color="#B0B0B0",
                         text_color="#000",
                         command=lambda:toggle_password_visibility(entry_password))
-    toggle_button.place(x=1100, y=956)  # Position the button near the password field
+    toggle_button.place(x=923, y=195)  # Position the button near the password field
 
     # Criar o texto clicável
     clickable_text = ctk.CTkLabel(app,
@@ -190,7 +190,7 @@ def criar_conta():
                         font=("Helvetica", 14),
                         width=35,
                         height=35,
-                        fg_color="#C9C4C4",
+                        fg_color="#D9D9D9",
                         bg_color= "#D9D9D9",
                         hover_color="#B0B0B0",
                         text_color="#000",
