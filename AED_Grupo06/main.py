@@ -14,11 +14,11 @@ import os
 ####### FUNÇÕES #######
 #######################
 
-def toggle_password_visibility():
-    if entry_password.cget("show") == "*":
-        entry_password.configure(show="")  # Show the text
+def toggle_password_visibility(entry):
+    if entry.cget("show") == "*":
+        entry.configure(show="")  # Show the text
     else:
-        entry_password.configure(show="*")  # Hide the text
+        entry.configure(show="*")  # Hide the text
 
 def splashscreen():
     """Cria a splashscreen da app."""
@@ -181,7 +181,7 @@ def criar_conta():
                         bg_color= "#D9D9D9",
                         hover_color="#B0B0B0",
                         text_color="#000",
-                        command=lambda:toggle_password_visibility())
+                        command=lambda:toggle_password_visibility(entry_password))
     toggle_button.place(x=923, y=332)  # Position the button near the password field
 
 
