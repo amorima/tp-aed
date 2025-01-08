@@ -208,6 +208,18 @@ def criar_conta():
                            height=36)
     button_criar_conta.place(x=513, y=414)
 
+def ecra_principal():
+    # Limpar a janela atual
+    for widget in app.winfo_children():
+        widget.destroy()
+    
+    ctk.set_appearance_mode("dark")
+
+    promo = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 42))
+    label_promo = ctk.CTkLabel(app, text="", image=promo)
+    label_promo.place(relx=0.0, rely=0.5, anchor="w")
+    
+
 #########################
 #### CONFIGURAÇÕES ######
 #########################
