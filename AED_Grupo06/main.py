@@ -104,7 +104,7 @@ def iniciar_app():
                            text_color="#000",
                            hover_color="#D59C2A",
                            fg_color="#F2C94C",
-                           command= lambda:logIn(),                           
+                           command= lambda:logIn(entry_password.get(),entry_email.get()),                           
                            width=173,
                            height=36)
     button_iniciar_sessao.place(x=513, y=297)
