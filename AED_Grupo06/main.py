@@ -7,193 +7,227 @@ import threading
 import customtkinter as ctk
 from users import *
 
-def openSplash(app):
-    """
+import customtkinter as ctk
+from PIL import Image
+import os
+
+#######################
+####### FUNÇÕES #######
+#######################
+
+def splashscreen():
+    """Cria a splashscreen da app."""
+    # Limpar a janela atual
+    for widget in app.winfo_children():
+        widget.destroy()
+
+    # Adicionar o logótipo
+    logo = ctk.CTkImage(Image.open('./images/logo.png'), size=(373, 142))
+    label_logo = ctk.CTkLabel(app, text="", image=logo)
+    label_logo.place(relx=0.5, rely=0.5, anchor="center")  # Centraliza o logótipo
+
+    # Agendar a transição para a próxima função
+    app.after(3000, iniciar_app)  # Transita para `iniciar_app` após 3 segundos
+
+
+def iniciar_app():
+    """Inicializa a aplicação principal."""
+    # Limpar a janela atual
+    for widget in app.winfo_children():
+        widget.destroy()
+
+    ctk.set_appearance_mode("light")
+
+    promo = ctk.CTkImage(Image.open('./images/promo.png'), size=(468, 675))
+    label_promo = ctk.CTkLabel(app, text="", image=promo)
+    label_promo.place(relx=0.0, rely=0.5, anchor="w")
+
+    rotulo = ctk.CTkLabel(app, text="Iniciar Sessão", font=("Helvetica", 24, "bold"), text_color="#4F8377")
+    rotulo.place(x=513, y=36)
+
+    rotulo = ctk.CTkLabel(app, text="E-MAIL", font=("Helvetica", 10, "bold"), text_color="#000")
+    rotulo.place(x=513, y=92)
+
+    entry_email = ctk.CTkEntry(app,
+                         width=451,
+                         height=43,
+                         border_width=0,
+                         placeholder_text="Insira o seu e-mail",
+                         fg_color="#D9D9D9",
+                         font=("Helvetica", 16),
+                         )
+    entry_email.place(x=513, y=115)  # Posicionar a textbox no local desejado
+
+    rotulo = ctk.CTkLabel(app, text="PALAVRA-PASSE", font=("Helvetica", 10, "bold"), text_color="#000")
+    rotulo.place(x=513, y=169)
+
+    entry_password = ctk.CTkEntry(app,
+                         width=451,
+                         height=43,
+                         border_width=0,
+                         placeholder_text="Insira a sua palavra-passe",
+                         show="*",
+                         fg_color="#D9D9D9",
+                         font=("Helvetica", 16),
+                         )
+    entry_password.place(x=513, y=191)  # Posicionar a textbox no local desejado
+
+    # Criar o texto clicável
+    clickable_text = ctk.CTkLabel(app,
+                                  text="Esqueceste-te da tua palavra passe?",
+                                  text_color="#4F8377",
+                                  font=("Helvetica", 16, "underline"))
+    clickable_text.place(x=513, y=246)
+    # Associe a função de clique ao texto
+    clickable_text.bind("<Button-1>", lambda event: on_text_click())
     
-    """
-    splash=ctk.CTkToplevel(app)
-    splash.title("Your Joining the App")
-    splash.geometry("1200x675")
-    splash.configure(bg = "#121212")
+    button_iniciar_sessao = ctk.CTkButton(app,
+                           text='INICIAR SESSÃO',
+                           font=("Helvetica", 14.3, "bold"),
+                           text_color="#000",
+                           hover_color="#D59C2A",
+                           fg_color="#F2C94C",
+                           width=173,
+                           height=36)
+    button_iniciar_sessao.place(x=513, y=297)
 
-    return splash
+    rotulo = ctk.CTkLabel(app, text="Ainda não tens conta?", font=("Helvetica", 24, "bold"), text_color="#4F8377")
+    rotulo.place(x=513, y=494)
 
-def openLogin(app,screen):
-    """
-    
-    """
-    screen.destroy()
+    rotulo = ctk.CTkLabel(app, text="Se ainda não tens conta, cria aqui e começa a tirar partido das melhores ", font=("Helvetica", 16, "bold"), text_color="#000")
+    rotulo.place(x=513, y=540)
 
-    app.deiconify()
-    app.geometry("1200x675")
-    app.configure(bg="#E6F2F0")
-    app.title("Hoot - Iniciar Sessão")
+    rotulo = ctk.CTkLabel(app, text="vantagens na Hoot.", font=("Helvetica", 16, "bold"), text_color="#000")
+    rotulo.place(x=513, y=565)
 
-    def relative_to_assets(path: str):
-        return f"./assets/{path}"
+    button_criar_conta = ctk.CTkButton(app,
+                           text='CRIAR CONTA',
+                           font=("Helvetica", 14.3, "bold"),
+                           text_color="#fff",
+                           hover_color="#E1B037",
+                           fg_color="#4F8377",
+                           width=173,
+                           height=36)
+    button_criar_conta.place(x=513, y=601)
 
-    # Email
-    email_label = ctk.CTkLabel(
-        app,
-        text="E-MAIL",
-        font=("Helvetica Bold", 10),
-        text_color="#000000"
-    )
-    email_label.place(x=513, y=92)
+def criar_conta():
+    """Inicializa a aplicação principal."""
+    # Limpar a janela atual
+    for widget in app.winfo_children():
+        widget.destroy()
 
-    email_entry = ctk.CTkEntry(
-        app,
-        placeholder_text="Enter your email",
-        fg_color="#D9D9D9",
-        text_color="#000716",
-        width=435,
-        height=41,
-    )
-    email_entry.place(x=521, y=110)
+    ctk.set_appearance_mode("light")
 
-    # Password
-    password_label = ctk.CTkLabel(
-        app,
-        text="PALAVRA-PASSE*",
-        font=("Helvetica Bold", 10),
-        text_color="#000000"
-    )
-    password_label.place(x=513, y=173)
+    promo = ctk.CTkImage(Image.open('./images/promo.png'), size=(468, 675))
+    label_promo = ctk.CTkLabel(app, text="", image=promo)
+    label_promo.place(relx=0.0, rely=0.5, anchor="w")
 
-    password_entry = ctk.CTkEntry(
-        app,
-        placeholder_text="Enter your password",
-        fg_color="#D9D9D9",
-        text_color="#000716",
-        show="*",
-        width=435,
-        height=41,
-    )
-    password_entry.place(x=521, y=191)
+    rotulo = ctk.CTkLabel(app, text="Criar Conta", font=("Helvetica", 24, "bold"), text_color="#4F8377")
+    rotulo.place(x=513, y=36)
 
-    # "Esqueceste-te da tua palavra passe?" Label
-    forgot_password_label = ctk.CTkLabel(
-        app,
-        text="Esqueceste-te da tua palavra passe?",
-        font=("Helvetica", 15),
-        text_color="#4F8377"
-    )
-    forgot_password_label.place(x=513, y=246)
+    rotulo = ctk.CTkLabel(app, text="USERNAME", font=("Helvetica", 10, "bold"), text_color="#000")
+    rotulo.place(x=513, y=112)
 
-    #Login
-    login_button = ctk.CTkButton(
-        app,
-        text="Iniciar Sessão",
-        command=lambda: print("button_1 clicked"),
-        width=173,
-        height=36,
-    )
-    login_button.place(x=513, y=297)
+    entry_username = ctk.CTkEntry(app,
+                         width=451,
+                         height=43,
+                         border_width=0,
+                         placeholder_text="Insira um username",
+                         fg_color="#D9D9D9",
+                         font=("Helvetica", 16),
+                         )
+    entry_username.place(x=513, y=134)  # Posicionar a textbox no local desejado
 
-    #Section
-    section_title = ctk.CTkLabel(
-        app,
-        text="Iniciar Sessão",
-        font=("Helvetica Bold", 24),
-        text_color="#4F8377"
-    )
-    section_title.place(x=513, y=36)
+    rotulo = ctk.CTkLabel(app, text="E-MAIL", font=("Helvetica", 10, "bold"), text_color="#000")
+    rotulo.place(x=513, y=208)
 
-    # Footer
-    footer_title = ctk.CTkLabel(
-        app,
-        text="Ainda não tens conta?",
-        font=("Helvetica Bold", 24),
-        text_color="#4F8377"
-    )
-    footer_title.place(x=513, y=494)
+    entry_email = ctk.CTkEntry(app,
+                         width=451,
+                         height=43,
+                         border_width=0,
+                         placeholder_text="Insira um e-mail",
+                         fg_color="#D9D9D9",
+                         font=("Helvetica", 16),
+                         )
+    entry_email.place(x=513, y=231)  # Posicionar a textbox no local desejado
 
-    footer_text1 = ctk.CTkLabel(
-        app,
-        text="Se ainda não tens conta, cria aqui e começa a tirar partido das melhores ",
-        font=("Helvetica Bold", 16),
-        text_color="#121212",
-        wraplength=400
-    )
-    footer_text1.place(x=514, y=540)
+    rotulo = ctk.CTkLabel(app, text="PALAVRA-PASSE", font=("Helvetica", 10, "bold"), text_color="#000")
+    rotulo.place(x=513, y=305)
 
-    footer_text2 = ctk.CTkLabel(
-        app,
-        text="vantagens na Hoot.",
-        font=("Helvetica Bold", 16),
-        text_color="#121212"
-    )
-    footer_text2.place(x=514, y=565)
+    entry_password = ctk.CTkEntry(app,
+                         width=451,
+                         height=43,
+                         border_width=0,
+                         placeholder_text="Insira uma palavra-passe",
+                         show="*",
+                         fg_color="#D9D9D9",
+                         font=("Helvetica", 16),
+                         )
+    entry_password.place(x=513, y=328)  # Posicionar a textbox no local desejado
 
-    # Sign Up Button
-    signup_button = ctk.CTkButton(
-        app,
-        text="Criar Conta",
-        command=lambda: logIn(),
-        width=173,
-        height=36,
-    )
-    signup_button.place(x=513, y=601)
+    button_criar_conta = ctk.CTkButton(app,
+                           text='CRIAR CONTA',
+                           font=("Helvetica", 14.3, "bold"),
+                           text_color="#fff",
+                           hover_color="#E1B037",
+                           fg_color="#4F8377",
+                           width=173,
+                           height=36)
+    button_criar_conta.place(x=513, y=414)
 
-    # Sidebar Text
-    sidebar_text1 = ctk.CTkLabel(
-        app,
-        text="A tua biblioteca ",
-        font=("Helvetica Bold", 34),
-        text_color="#E6F2F0"
-    )
-    sidebar_text1.place(x=93, y=351)
+#########################
+#### CONFIGURAÇÕES ######
+#########################
 
-    sidebar_text2 = ctk.CTkLabel(
-        app,
-        text="de filmes",
-        font=("Helvetica Bold", 34),
-        text_color="#E6F2F0"
-    )
-    sidebar_text2.place(x=93, y=393)
+# Retorna o caminho absoluto do ficheiro Python atualmente em execução
+root_dir = os.path.dirname(os.path.abspath(__file__))
+# Altera o diretório atual para o diretório do ficheiro Python
+os.chdir(root_dir)
 
-    sidebar_text3 = ctk.CTkLabel(
-        app,
-        text="e séries",
-        font=("Helvetica Bold", 34),
-        text_color="#E6F2F0"
-    )
-    sidebar_text3.place(x=93, y=435)
+#######################
+#### INÍCIO DA GUI ####
+#######################
 
-    # Placeholder for Image (if required)
-    image_placeholder = ctk.CTkLabel(
-        app,
-        text="[Your Image Here]",
-        font=("Helvetica Bold", 20),
-        text_color="#000000",
-        width=250,
-        height=250,
-        fg_color="#D9D9D9"
-    )
-    image_placeholder.place(x=234 - 125, y=337 - 125)  # Centering placeholder
+# Criar a aplicação (app)
+app = ctk.CTk()
 
+# Definir o título da janela
+app.title("Hoot - Gestor de Filmes e Séries")
 
-def waitSimulation(app,screen):
-    """
-    Espera 3 segundos antes de apresentar o proximo ecrã
-    """
-    time.sleep(3)
-    app.after(0, lambda: openLogin(app, screen))
+# Iniciar o CustomTkinter
+ctk.set_appearance_mode("dark")  # Modo claro ou escuro (Pode ser "system", "dark", "light")
+ctk.set_default_color_theme("blue")  # Tema padrão (Pode ser "blue", "dark-blue", "green")
 
-def main():
-    """
-    Função principal de funcionamento da app
-    """
-    app= ctk.CTk()#Inicia a App
-    app.withdraw()#Esconde a janela
+# Alterar o ícone da aplicação
+app.iconbitmap("./images/hoot.ico")
 
-    #Criar a Splash Screen
-    splashScreen = openSplash(app)
+# Dimensões da interface da app
+app_width = 1200
+app_height = 675
 
-    #Inicia o Loading
-    threading.Thread(target=lambda: waitSimulation(app, splashScreen), daemon=True).start()
+# Definir o tamanho da janela usando as variáveis
+app.geometry(f"{app_width}x{app_height}")  # Largura x Altura
 
-    app.mainloop()
-    
+# Obter as dimensões do ecrã (em pixeis)
+screen_width = app.winfo_screenwidth()
+screen_height = app.winfo_screenheight()
 
-main()
+# App centrada no ecrã, em função das suas dimensões
+x = (screen_width / 2) - (app_width / 2)
+y = (screen_height / 2) - (app_height / 2)
+app.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
+
+# Definir tamanho mínimo com as variáveis
+app.minsize(app_width, app_height)
+
+# Tornar a janela não redimensionável
+app.resizable(False, False)
+
+#######################
+#### INÍCIO DA APP ####
+#######################
+splashscreen()
+app.after(5000, criar_conta)
+
+# Iniciar o loop da interface gráfica
+app.mainloop()
