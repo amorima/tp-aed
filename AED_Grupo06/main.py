@@ -2,13 +2,12 @@
 #Biblioteca
 #-----------
 import os
-import time
-import threading
 import customtkinter as ctk
+from PIL import Image
+
 from users import *
 
-from PIL import Image
-import os
+
 
 #######################
 ####### FUNÇÕES #######
