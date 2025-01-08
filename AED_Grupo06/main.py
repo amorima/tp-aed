@@ -103,7 +103,7 @@ def iniciar_app():
                            text_color="#000",
                            hover_color="#D59C2A",
                            fg_color="#F2C94C",
-                           command= lambda:logIn(entry_password.get(),entry_email.get(),criar_conta,ecra_principal()),                           
+                           command= lambda:logIn(entry_password.get(),entry_email.get()),
                            width=173,
                            height=36)
     button_iniciar_sessao.place(x=513, y=297)
@@ -215,10 +215,15 @@ def ecra_principal():
     
     ctk.set_appearance_mode("dark")
 
-    promo = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 42))
-    label_promo = ctk.CTkLabel(app, text="", image=promo)
-    label_promo.place(relx=0.0, rely=0.5, anchor="w")
-    
+    logo_p = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 48))
+    label_logo_p = ctk.CTkLabel(app, text="", image=logo_p)
+    label_logo_p.place(x=27, y=26)
+
+    linha = ctk.CTkImage(Image.open('./images/Line_ecra.png'), size=(1, 472))
+    label_linha = ctk.CTkLabel(app, text="", image=linha)
+    label_linha.place(x=128, y=151)
+
+
 
 #########################
 #### CONFIGURAÇÕES ######
