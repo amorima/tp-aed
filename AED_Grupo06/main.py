@@ -4,20 +4,104 @@
 import os
 import customtkinter as ctk
 from PIL import Image
-
 from users import *
-
 
 
 #######################
 ####### FUNÇÕES #######
 #######################
+# Global variable to keep track of the currently selected button
+selected_button = None
 
 def toggle_password_visibility(entry):
     if entry.cget("show") == "*":
         entry.configure(show="")  # Show the text
     else:
         entry.configure(show="*")  # Hide the text
+
+def update_active_screen(button):
+    global selected_button
+    if selected_button:
+        selected_button.configure(fg_color="transparent")  # Reset the previous button's color
+    button.configure(fg_color="#181818")  # Set the selected button's color
+    selected_button = button
+
+def menu_lateral():
+    logo_p = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 48))
+    label_logo_p = ctk.CTkLabel(app, text="", image=logo_p)
+    label_logo_p.place(x=29, y=26)
+
+    linha = ctk.CTkImage(Image.open('./images/Line_ecra.png'), size=(1, 472))
+    label_linha = ctk.CTkLabel(app, text="", image=linha)
+    label_linha.place(x=145, y=151)
+
+    # Carregar a imagem e redimensionar
+    botao_series_image = ctk.CTkImage(
+        Image.open("./images/button_series.png"),
+        size=(68, 89))
+    botao_series = ctk.CTkButton(
+        app,
+        width=68,
+        height=89,
+        text="",               # Sem texto, apenas a imagem
+        image=botao_series_image,
+        command=lambda: [update_active_screen(botao_series), ecra_principal()],
+        fg_color="transparent",   # Fundo transparente para só aparecer a imagem
+        hover_color="#181818"     # Cor ao passar o rato (opcional)
+    ) 
+    # Posicionar o botão
+    botao_series.place(x=28, y=151)
+
+    # Carregar a imagem e redimensionar
+    botao_filmes_image = ctk.CTkImage(
+        Image.open("./images/button_filmes.png"),
+        size=(68, 89))
+    botao_filmes = ctk.CTkButton(
+        app,
+        width=68,
+        height=89,
+        text="",               # Sem texto, apenas a imagem
+        image=botao_filmes_image,
+        command=lambda: [update_active_screen(botao_filmes), ecra_principal()],
+        fg_color="transparent",   # Fundo transparente para só aparecer a imagem
+        hover_color="#181818"     # Cor ao passar o rato (opcional)
+    ) 
+    # Posicionar o botão
+    botao_filmes.place(x=28, y=278)
+
+    # Carregar a imagem e redimensionar
+    botao_explorar_image = ctk.CTkImage(
+        Image.open("./images/button_explorar.png"),
+        size=(68, 89))
+    botao_explorar = ctk.CTkButton(
+        app,
+        width=68,
+        height=89,
+        text="",               # Sem texto, apenas a imagem
+        image=botao_explorar_image,
+        command=lambda: [update_active_screen(botao_explorar), ecra_principal()],
+        fg_color="transparent",   # Fundo transparente para só aparecer a imagem
+        hover_color="#181818"     # Cor ao passar o rato (opcional)
+    )
+    # Posicionar o botão
+    botao_explorar.place(x=28, y=408)
+
+    # Carregar a imagem e redimensionar
+    botao_perfil_image = ctk.CTkImage(
+        Image.open("./images/button_perfil.png"),
+        size=(68, 89))
+    botao_perfil = ctk.CTkButton(
+        app,
+        width=68,
+        height=89,
+        text="",               # Sem texto, apenas a imagem
+        image=botao_perfil_image,
+        command=lambda: [update_active_screen(botao_perfil), ecra_principal()],
+        fg_color="transparent",   # Fundo transparente para só aparecer a imagem
+        hover_color="#181818"     # Cor ao passar o rato (opcional)
+    )
+    # Posicionar o botão
+    botao_perfil.place(x=28, y=534)
 
 def splashscreen():
     """Cria a splashscreen da app."""
@@ -209,20 +293,15 @@ def criar_conta():
     button_criar_conta.place(x=513, y=414)
 
 def ecra_principal():
+    """Renderiza o ecrã principal
+    """
     # Limpar a janela atual
     for widget in app.winfo_children():
         widget.destroy()
     
     ctk.set_appearance_mode("dark")
 
-    logo_p = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 48))
-    label_logo_p = ctk.CTkLabel(app, text="", image=logo_p)
-    label_logo_p.place(x=27, y=26)
-
-    linha = ctk.CTkImage(Image.open('./images/Line_ecra.png'), size=(1, 472))
-    label_linha = ctk.CTkLabel(app, text="", image=linha)
-    label_linha.place(x=128, y=151)
-
+    menu_lateral()
 
 
 #########################
@@ -276,8 +355,9 @@ app.resizable(False, False)
 #######################
 #### INÍCIO DA APP ####
 #######################
-splashscreen()
 
+""" splashscreen() """
+ecra_principal()
 
 # Iniciar o loop da interface gráfica
 app.mainloop()

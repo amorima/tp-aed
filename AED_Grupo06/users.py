@@ -3,7 +3,6 @@
 #-------------------
 import os
 import CTkMessagebox
-from main import ecra_principal
 #Files
 #-----------------------------------
 user_db=".\\files\\users.txt"
