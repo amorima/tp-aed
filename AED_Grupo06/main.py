@@ -24,6 +24,7 @@ def update_active_screen(button):
     global selected_button
     if selected_button:
         selected_button.configure(fg_color="transparent")
+    print(f"Current button: {button}")
     button.configure(fg_color="#181818")
     selected_button = button
 
