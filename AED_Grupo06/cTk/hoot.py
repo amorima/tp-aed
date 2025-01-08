@@ -15,7 +15,7 @@ def splashscreen():
     # Adicionar o logótipo
     logo = ctk.CTkImage(Image.open('./img/logo.png'), size=(373, 142))
     label_logo = ctk.CTkLabel(app, text="", image=logo)
-    label_logo.place(relx=0.5, rely=0.5, anchor="center")  # Centraliza o logótipo
+    label_logo.place(relx=0.5, rely=0.5, anchor="center")  # Centra o logótipo
 
     # Agendar a transição para a próxima função
     app.after(3000, iniciar_app)  # Transita para `iniciar_app` após 3 segundos
@@ -216,7 +216,7 @@ app.resizable(False, False)
 
 #######################
 #### INÍCIO DA APP ####
-#######################
+#######################""" """  """ """
 splashscreen()
 app.after(5000, criar_conta)
 
