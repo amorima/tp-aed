@@ -48,7 +48,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_series_image,
-        command=lambda: [update_active_screen(botao_series), ecra_principal],
+        command=lambda: [update_active_screen(botao_series)],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -65,7 +65,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_filmes_image,
-        command=lambda: [update_active_screen(botao_filmes), ecra_principal],
+        command=lambda: [update_active_screen(botao_filmes)],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -82,7 +82,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_explorar_image,
-        command=lambda: [update_active_screen(botao_explorar), ecra_principal],
+        command=lambda: [update_active_screen(botao_explorar)],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     )
@@ -99,7 +99,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_perfil_image,
-        command=lambda: [update_active_screen(botao_perfil), ecra_principal],
+        command=lambda: [update_active_screen(botao_perfil)],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     )
