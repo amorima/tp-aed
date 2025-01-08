@@ -45,7 +45,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_series_image,
-        command=lambda: [update_active_screen(botao_series), ecra_principal()],
+        command=lambda: [update_active_screen(botao_series), ecra_series()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -62,7 +62,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_filmes_image,
-        command=lambda: [update_active_screen(botao_filmes), ecra_principal()],
+        command=lambda: [update_active_screen(botao_filmes), ecra_series()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -79,7 +79,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_explorar_image,
-        command=lambda: [update_active_screen(botao_explorar), ecra_principal()],
+        command=lambda: [update_active_screen(botao_explorar), ecra_series()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     )
@@ -96,7 +96,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_perfil_image,
-        command=lambda: [update_active_screen(botao_perfil), ecra_principal()],
+        command=lambda: [update_active_screen(botao_perfil), ecra_series()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     )
@@ -292,7 +292,7 @@ def criar_conta():
                            height=36)
     button_criar_conta.place(x=513, y=414)
 
-def ecra_principal():
+def ecra_series():
     """Renderiza o ecrã principal
     """
     # Limpar a janela atual
@@ -303,6 +303,22 @@ def ecra_principal():
 
     menu_lateral()
 
+    mock = ctk.CTkImage(Image.open('./images/series_mockup.png'), size=(894, 521))
+    label_mock = ctk.CTkLabel(app, text="", image=mock)
+    label_mock.place(x=224, y=108)
+
+def ecra_filmes():
+    """Renderiza o ecrã principal
+    """
+    # Limpar a janela atual
+    for widget in app.winfo_children():
+        widget.destroy()
+
+    menu_lateral()
+
+    mock = ctk.CTkImage(Image.open('./images/filmes_mock.png'), size=(894, 521))
+    label_mock = ctk.CTkLabel(app, text="", image=mock)
+    label_mock.place(x=224, y=108)
 
 #########################
 #### CONFIGURAÇÕES ######
@@ -357,7 +373,7 @@ app.resizable(False, False)
 #######################
 
 """ splashscreen() """
-ecra_principal()
+ecra_filmes()
 
 # Iniciar o loop da interface gráfica
 app.mainloop()
