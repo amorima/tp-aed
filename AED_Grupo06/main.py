@@ -7,7 +7,6 @@ import threading
 import customtkinter as ctk
 from users import *
 
-import customtkinter as ctk
 from PIL import Image
 import os
 
@@ -87,6 +86,7 @@ def iniciar_app():
                            text_color="#000",
                            hover_color="#D59C2A",
                            fg_color="#F2C94C",
+                           command= lambda:logIn(),                           
                            width=173,
                            height=36)
     button_iniciar_sessao.place(x=513, y=297)
@@ -106,6 +106,7 @@ def iniciar_app():
                            text_color="#fff",
                            hover_color="#E1B037",
                            fg_color="#4F8377",
+                           command=lambda:criar_conta(),
                            width=173,
                            height=36)
     button_criar_conta.place(x=513, y=601)
@@ -171,6 +172,7 @@ def criar_conta():
                            text_color="#fff",
                            hover_color="#E1B037",
                            fg_color="#4F8377",
+                           command=lambda:sign(entry_username.get(),entry_password.get(),entry_email.get()),
                            width=173,
                            height=36)
     button_criar_conta.place(x=513, y=414)
@@ -227,7 +229,7 @@ app.resizable(False, False)
 #### INÍCIO DA APP ####
 #######################
 splashscreen()
-app.after(5000, criar_conta)
+
 
 # Iniciar o loop da interface gráfica
 app.mainloop()

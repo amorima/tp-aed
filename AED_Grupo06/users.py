@@ -3,6 +3,7 @@
 #-------------------
 import os
 import CTkMessagebox
+from main import iniciar_app
 #Files
 #-----------------------------------
 user_db=".\\files\\users.txt"
@@ -82,3 +83,32 @@ def logIn(password,mail):
     if userExists==False:
         CTkMessagebox.CTkMessagebox(title="LogIn", message="User não existe \nPor favor faça Sign In",icon="warning", option_1="Ok") #Pop up Sign In
 
+def sign(user,password,mail):
+    """
+    A função recebe e procura o user na lista
+    UserNotFound & PasswordValida - Aceita logIn
+    UserNotFound - Pede Password
+    UserFound - Pede Log in
+
+    Formato do ficheiro user_db
+        Username;Password;Admin/User
+    O ultimo campo é preenchido como User como default 
+    """
+    validPassword=passwordChecker(password)
+    if len(user)>=4:
+        if validPassword=="True":
+            userExist=False
+            userList=lerFicheiro(user_db)
+            for userLine in userList:
+                campo= userLine.split(";")
+                if campo[0]==user:
+                    userExist=True
+                    CTkMessagebox.CTkMessagebox(title="Sign in", message="Usuario já Existe",icon="warning", option_1="Ok")
+            if userExist==False:
+                f = open(user_db, "a", encoding="utf-8")
+                f.write(user+";"+password+";"+mail+";User\n")
+                f.close()
+        else:
+            CTkMessagebox.CTkMessagebox(title="Sign in", message="The password is:\n"+validPassword,icon="warning", option_1="Ok")
+    else:
+        CTkMessagebox.CTkMessagebox(title="Sign in", message="Username deve ter no minimo 4 caratheres",icon="warning", option_1="Ok")
