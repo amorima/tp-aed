@@ -103,12 +103,13 @@ def sign(user,password,mail,next):
                 if campo[0]==user:
                     userExist=True
                     CTkMessagebox.CTkMessagebox(title="Sign in", message="Usuario já Existe",icon="warning", option_1="Ok")
+                    return
             if userExist==False:
-                f = open(user_db, "a", encoding="utf-8")
-                f.write(user+";"+password+";"+mail+";User\n")
-                f.close()
-                return next()
+                with open(user_db, "a", encoding="utf-8") as f:
+                    f.write(f"{user};{password};{mail};User\n")
+                return next
         else:
             CTkMessagebox.CTkMessagebox(title="Sign in", message="The password is:\n"+validPassword,icon="warning", option_1="Ok")
     else:
         CTkMessagebox.CTkMessagebox(title="Sign in", message="Username deve ter no minimo 4 caratheres",icon="warning", option_1="Ok")
+
