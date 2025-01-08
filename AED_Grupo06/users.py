@@ -97,7 +97,7 @@ def sign(user,password,mail,next):
     validMail = emailChecker(mail)
     if len(user) >= 4:
         if validPassword == "True":
-            if validMail == True:
+            if validMail == "True":
                 userExist = False
                 userList = lerFicheiro(user_db)
                 for userLine in userList:
@@ -128,7 +128,7 @@ def sign(user,password,mail,next):
             else:
                 CTkMessagebox.CTkMessagebox(
                     title="Sign in", 
-                    message="Email invalid \n-Deve incluir um @", 
+                    message="Email invalid\n"+validMail, 
                     icon="warning", 
                     option_1="Ok"
                 )
@@ -151,11 +151,11 @@ def emailChecker(email):
     """
     @ checker
     """
-    valid = "False"
+    valid = "-Email must contain @\n"
     for letter in email:
         if letter == "@" :
             valid = "True"
     for letter in email:
         if letter ==";" :
-            valid = "-Email must not contain ; "
+            valid = ""
     return valid
