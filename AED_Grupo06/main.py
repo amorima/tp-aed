@@ -27,7 +27,34 @@ def update_active_screen(button):
     button.configure(fg_color="#181818")
     selected_button = button
 
+def ecra_series():
+    """Renderiza o ecrã principal
+    """
+    # Limpar a janela atual
+    for widget in app.winfo_children():
+        widget.destroy()
+    
+    ctk.set_appearance_mode("dark")
 
+    menu_lateral()
+
+    mock = ctk.CTkImage(Image.open('./images/series_mockup.png'), size=(894, 521))
+    label_mock = ctk.CTkLabel(app, text="", image=mock)
+    label_mock.place(x=224, y=108)
+
+
+def ecra_filmes():
+    """Renderiza o ecrã principal
+    """
+    # Limpar a janela atual
+    for widget in app.winfo_children():
+        widget.destroy()
+
+    menu_lateral()
+
+    mock = ctk.CTkImage(Image.open('./images/filmes_mock.png'), size=(894, 521))
+    label_mock = ctk.CTkLabel(app, text="", image=mock)
+    label_mock.place(x=224, y=108)
 
 def menu_lateral():
     logo_p = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 48))
@@ -48,7 +75,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_series_image,
-        command=lambda: [update_active_screen(botao_series)],
+        command=lambda: [update_active_screen(botao_series),ecra_series()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -65,7 +92,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_filmes_image,
-        command=lambda: [update_active_screen(botao_filmes)],
+        command=lambda: [update_active_screen(botao_filmes),ecra_filmes()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -190,7 +217,7 @@ def iniciar_app():
                            text_color="#000",
                            hover_color="#D59C2A",
                            fg_color="#F2C94C",
-                           command= lambda:logIn(entry_password.get(),entry_email.get(),ecra_principal),
+                           command= lambda:logIn(entry_password.get(),entry_email.get(),ecra_series),
                            width=173,
                            height=36)
     button_iniciar_sessao.place(x=513, y=297)
