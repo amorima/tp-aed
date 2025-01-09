@@ -298,10 +298,10 @@ def ecra_series():
     # Limpar a janela atual
     for widget in app.winfo_children():
         widget.destroy()
-    
-    ctk.set_appearance_mode("dark")
 
     menu_lateral()
+    
+    ctk.set_appearance_mode("dark")
 
     mock = ctk.CTkImage(Image.open('./images/series_mockup.png'), size=(894, 521))
     label_mock = ctk.CTkLabel(app, text="", image=mock)
