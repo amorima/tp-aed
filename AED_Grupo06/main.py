@@ -62,7 +62,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_filmes_image,
-        command=lambda: [update_active_screen(botao_filmes), ecra_series()],
+        command=lambda: [update_active_screen(botao_filmes), ecra_filmes()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -187,7 +187,7 @@ def iniciar_app():
                            text_color="#000",
                            hover_color="#D59C2A",
                            fg_color="#F2C94C",
-                           command= lambda:logIn(entry_password.get(),entry_email.get()),
+                           command= lambda:logIn(entry_password.get(),entry_email.get(),ecra_series),
                            width=173,
                            height=36)
     button_iniciar_sessao.place(x=513, y=297)
@@ -372,8 +372,7 @@ app.resizable(False, False)
 #### INÍCIO DA APP ####
 #######################
 
-""" splashscreen() """
-ecra_filmes()
+splashscreen()
 
 # Iniciar o loop da interface gráfica
 app.mainloop()
