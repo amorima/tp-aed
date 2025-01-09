@@ -11,7 +11,7 @@ from users import *
 ####### FUNÇÕES #######
 #######################
 # Global variable to keep track of the currently selected button
-selected_button = None 
+selected_button = None
 
 def toggle_password_visibility(entry):
     if entry.cget("show") == "*":
@@ -19,42 +19,12 @@ def toggle_password_visibility(entry):
     else:
         entry.configure(show="*")  # Hide the text
 
-
 def update_active_screen(button):
     global selected_button
     if selected_button:
-        selected_button.configure(fg_color="transparent")
-    button.configure(fg_color="#181818")
+        selected_button.configure(fg_color="transparent")  # Reset the previous button's color
+    button.configure(fg_color="#181818")  # Set the selected button's color
     selected_button = button
-
-def ecra_series():
-    """Renderiza o ecrã principal
-    """
-    # Limpar a janela atual
-    for widget in app.winfo_children():
-        widget.destroy()
-    
-    ctk.set_appearance_mode("dark")
-
-    menu_lateral()
-
-    mock = ctk.CTkImage(Image.open('./images/series_mockup.png'), size=(894, 521))
-    label_mock = ctk.CTkLabel(app, text="", image=mock)
-    label_mock.place(x=224, y=108)
-
-
-def ecra_filmes():
-    """Renderiza o ecrã principal
-    """
-    # Limpar a janela atual
-    for widget in app.winfo_children():
-        widget.destroy()
-
-    menu_lateral()
-
-    mock = ctk.CTkImage(Image.open('./images/filmes_mock.png'), size=(894, 521))
-    label_mock = ctk.CTkLabel(app, text="", image=mock)
-    label_mock.place(x=224, y=108)
 
 def menu_lateral():
     logo_p = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 48))
@@ -75,7 +45,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_series_image,
-        command=lambda: [update_active_screen(botao_series),ecra_series()],
+        command=lambda: [update_active_screen(botao_series), ecra_series()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -92,7 +62,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_filmes_image,
-        command=lambda: [update_active_screen(botao_filmes),ecra_filmes()],
+        command=lambda: [update_active_screen(botao_filmes), ecra_filmes()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     ) 
@@ -109,7 +79,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_explorar_image,
-        command=lambda: [update_active_screen(botao_explorar)],
+        command=lambda: [update_active_screen(botao_explorar), ecra_series()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     )
@@ -126,7 +96,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_perfil_image,
-        command=lambda: [update_active_screen(botao_perfil)],
+        command=lambda: [update_active_screen(botao_perfil), ecra_series()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     )
@@ -322,7 +292,7 @@ def criar_conta():
                            height=36)
     button_criar_conta.place(x=513, y=414)
 
-def ecra_principal():
+def ecra_series():
     """Renderiza o ecrã principal
     """
     # Limpar a janela atual
@@ -333,6 +303,22 @@ def ecra_principal():
 
     menu_lateral()
 
+    mock = ctk.CTkImage(Image.open('./images/series_mockup.png'), size=(894, 521))
+    label_mock = ctk.CTkLabel(app, text="", image=mock)
+    label_mock.place(x=224, y=108)
+
+def ecra_filmes():
+    """Renderiza o ecrã principal
+    """
+    # Limpar a janela atual
+    for widget in app.winfo_children():
+        widget.destroy()
+
+    menu_lateral()
+
+    mock = ctk.CTkImage(Image.open('./images/filmes_mock.png'), size=(894, 521))
+    label_mock = ctk.CTkLabel(app, text="", image=mock)
+    label_mock.place(x=224, y=108)
 
 #########################
 #### CONFIGURAÇÕES ######
@@ -387,7 +373,6 @@ app.resizable(False, False)
 #######################
 
 splashscreen()
-
 
 # Iniciar o loop da interface gráfica
 app.mainloop()
