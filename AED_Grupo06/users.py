@@ -5,8 +5,8 @@ import os
 import CTkMessagebox
 #Files
 #-----------------------------------
-#user_db=".\\AED_Grupo06\\files\\users.txt"
-user_db=".\\files\\users.txt"
+user_db=".\\AED_Grupo06\\files\\users.txt"
+#user_db=".\\files\\users.txt"
 #Funções de Gestão de Users
 #--------------
 def lerFicheiro(ficheiro):
