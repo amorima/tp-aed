@@ -5,6 +5,7 @@ import os
 import CTkMessagebox
 #Files
 #-----------------------------------
+#user_db=".\\AED_Grupo06\\files\\users.txt"
 user_db=".\\files\\users.txt"
 #Funções de Gestão de Users
 #--------------
@@ -174,3 +175,31 @@ def emailChecker(email):
             valid = ""
     return valid
 
+def changeUser(user,password,newUser):
+    """
+    Arg-user|str,newUser|str
+    Returns-changes the user to the newUser on the utilizadores.txt (if the login is valid)
+    """
+    newUser_db=[]
+    if len(newUser)>=4:
+        userList=lerFicheiro(user_db)
+        for line in userList:
+            username = line.split(";")
+            if username[0] == user and username[1] == password:
+                newUser_db.append(newUser+";"+username[1]+";"+username[2]+";"+username[3])
+            elif username[0] == user:
+                CTkMessagebox.CTkMessagebox(title="Username Change", message="Password Incorreta",icon="warning", option_1="Ok")
+                newUser_db.append(line)
+            else:
+                newUser_db.append(line)
+        file= open(user_db,"w",encoding="utf-8")
+        for line in newUser_db:
+            file.write(line)
+        file.close()
+
+#Tester
+#-----------------
+user=input("User:")
+newUser=input("New User")
+password=input("Pass:")
+changeUser(user,password,newUser)
