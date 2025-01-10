@@ -197,9 +197,39 @@ def changeUser(user,password,newUser):
             file.write(line)
         file.close()
 
+def changePass(user,password,newPassword):
+    """
+    Arg-user|str,password|str
+    Returns-changes the user's password to the newPassword on the utilizadores.txt (if the login is valid)
+    """
+    newUser_db=[]
+    validPassword=passwordChecker(newPassword)
+    if validPassword=="True":
+        userList=lerFicheiro(user_db)
+        for line in userList:
+            campos = line.split(";")
+            if campos[0] == user and campos[1] == password:
+                newUser_db.append(campos[0]+";"+newPassword+";"+campos[2]+";"+campos[3])
+            elif campos[0] == user:
+                CTkMessagebox.CTkMessagebox(title="Username Change", message="Password Incorreta",icon="warning", option_1="Ok")
+                newUser_db.append(line)
+            else:
+                newUser_db.append(line)
+        file= open(user_db,"w",encoding="utf-8")
+        for line in newUser_db:
+            file.write(line)
+        file.close()
+    else:
+        CTkMessagebox.CTkMessagebox(
+                title="Sign in", 
+                message="The password is:\n" + validPassword, 
+                icon="warning", 
+                option_1="Ok"
+            )
+
 #Tester
 #-----------------
 user=input("User:")
 newUser=input("New User")
 password=input("Pass:")
-changeUser(user,password,newUser)
+changePass(user,password,newUser)
