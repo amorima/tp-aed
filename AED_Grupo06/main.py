@@ -19,6 +19,18 @@ def toggle_password_visibility(entry):
     else:
         entry.configure(show="*")  # Hide the text
 
+def limpar_area_central():
+    """Remove todos os widgets da área central, mas mantém o menu lateral."""
+    for widget in app.winfo_children():
+        # Mantém os widgets que fazem parte do menu lateral
+        if widget.winfo_x() > 145:  # Assume que o menu lateral ocupa x <= 145
+            widget.destroy()
+
+def limpar_all():
+    for widget in app.winfo_children():
+        widget.destroy()
+    menu_lateral()
+
 def update_active_screen(button):
     global selected_button
     if selected_button:
@@ -187,7 +199,7 @@ def iniciar_app():
                            text_color="#000",
                            hover_color="#D59C2A",
                            fg_color="#F2C94C",
-                           command= lambda:logIn(entry_password.get(),entry_email.get(),ecra_series),
+                           command= lambda:logIn(entry_password.get(),entry_email.get(),ecra_series,limpar_all),
                            width=173,
                            height=36)
     button_iniciar_sessao.place(x=513, y=297)
@@ -296,10 +308,7 @@ def ecra_series():
     """Renderiza o ecrã principal
     """
     # Limpar a janela atual
-    for widget in app.winfo_children():
-        widget.destroy()
-
-    menu_lateral()
+    limpar_area_central()
     
     ctk.set_appearance_mode("dark")
 
@@ -311,8 +320,7 @@ def ecra_filmes():
     """Renderiza o ecrã principal
     """
     # Limpar a janela atual
-    for widget in app.winfo_children():
-        widget.destroy()
+    limpar_area_central()
 
     menu_lateral()
 

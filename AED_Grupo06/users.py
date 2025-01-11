@@ -61,7 +61,7 @@ def passwordChecker(password):
     Msm=shortMsm+capitalMsm+numberMsm+specialMsm+splitterMsm
     return Msm
 
-def logIn(password,mail,next):
+def logIn(password,mail,next,next2):
     """
     next-proxima ação a fazer
     A função recebe a procura o username na lista
@@ -77,6 +77,7 @@ def logIn(password,mail,next):
     for userLine in userList:
         campos = userLine.split(";")
         if mail == campos[2] and password == campos[1]:
+            next2()
             next()
             return
         elif mail==campos[2]:
