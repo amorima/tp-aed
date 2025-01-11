@@ -5,8 +5,8 @@ import os
 import CTkMessagebox
 #Files
 #-----------------------------------
-user_db=".\\AED_Grupo06\\files\\users.txt"
-#user_db=".\\files\\users.txt"
+#user_db=".\\AED_Grupo06\\files\\users.txt"
+user_db=".\\files\\users.txt"
 #Funções de Gestão de Users
 #--------------
 def lerFicheiro(ficheiro):
@@ -227,9 +227,39 @@ def changePass(user,password,newPassword):
                 option_1="Ok"
             )
 
+def changeMail(user,password,newMail):
+    """
+    Arg-user|str,newMail|str
+    Returns-changes the user's email to the newMail on the utilizadores.txt (if the login is valid)
+    """
+    newUser_db=[]
+    validMail=emailChecker(newMail)
+    if validMail=="True":
+        userList=lerFicheiro(user_db)
+        for line in userList:
+            campos = line.split(";")
+            if campos[0] == user and campos[1] == password:
+                newUser_db.append(campos[0]+";"+campos[1]+";"+newMail+";"+campos[3])
+            elif campos[0] == user:
+                CTkMessagebox.CTkMessagebox(title="Username Change", message="Password Incorreta",icon="warning", option_1="Ok")
+                newUser_db.append(line)
+            else:
+                newUser_db.append(line)
+        file= open(user_db,"w",encoding="utf-8")
+        for line in newUser_db:
+            file.write(line)
+        file.close()
+    else:
+        CTkMessagebox.CTkMessagebox(
+                title="Sign in", 
+                message="The password is:\n" + validMail, 
+                icon="warning", 
+                option_1="Ok"
+            )
+
 #Tester
 #-----------------
 user=input("User:")
 newUser=input("New User")
 password=input("Pass:")
-changePass(user,password,newUser)
+changeMail(user,password,newUser)
