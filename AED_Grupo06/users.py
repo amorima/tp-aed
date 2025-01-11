@@ -256,10 +256,3 @@ def changeMail(user,password,newMail):
                 icon="warning", 
                 option_1="Ok"
             )
-
-#Tester
-#-----------------
-user=input("User:")
-newUser=input("New User")
-password=input("Pass:")
-changeMail(user,password,newUser)
