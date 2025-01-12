@@ -6,6 +6,7 @@ import CTkMessagebox
 #Files
 #-----------------------------------
 #user_db=".\\AED_Grupo06\\files\\users.txt"
+#user_data=.\\files\\user_data\\...
 user_db=".\\files\\users.txt"
 #Funções de Gestão de Users
 #--------------
@@ -257,3 +258,33 @@ def changeMail(user,password,newMail):
                 icon="warning", 
                 option_1="Ok"
             )
+
+def addFavorite(user,item):
+    """
+    Arg-user|str , Serie/Movie name|str
+    Returms-Adds item to the Favorite list of the user
+    """
+    userList=lerFicheiro(user_db)
+    for line in userList:
+        campos = line.split(";")
+        if campos[0]==user:
+            if not os.path.isdir(f".\\files\\user_data\\{user}"):
+                os.mkdir(f".\\files\\user_data\\{user}")
+            if not os.path.isfile(f".\\files\\user_data\\{user}\\favorites.txt"):
+                with open(f".\\files\\user_data\\{user}\\favorites.txt", 'w') as file:
+                    file.write(item+"\n")
+
+def removeFavorite(user,item):
+    """
+    Arg-user|str , Serie/Movie name|str
+    Returms-Removes item from the Favorite list of the user (favorites.txt)
+    """
+    favoritesList=lerFicheiro(f".\\files\\user_data\\{user}\\favorites.txt")
+    newFavoritesList=[]
+    for line in favoritesList:
+        if line != item+"\n":
+            newFavoritesList.append(line)
+    file= open(user_db,"w",encoding="utf-8")
+    for line in newFavoritesList:
+        file.write(line)
+    file.close()
