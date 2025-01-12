@@ -298,7 +298,7 @@ def addRating(user,item,rating):
     if not os.path.isdir(f".\\files\\catalog_data\\{item}"):
         os.mkdir(f".\\files\\catalog_data\\{item}")
     if not os.path.isfile(f".\\files\\catalog_data\\{item}\\reviews.txt"):
-        open(f".\\files\\catalog_data\\{user}\\favorites.txt", 'w').close()
+        open(f".\\files\\catalog_data\\{user}\\reviews.txt", 'w').close()
     with open(f".\\files\\catalog_data\\{item}\\reviews.txt", 'a',encoding="utf-8") as file:
         file.write(user+";"+rating+"\n")
 
@@ -315,3 +315,15 @@ def addComment(user,item,comment):
         open(f".\\files\\catalog_data\\{user}\\comments.txt", 'w').close()
     with open(f".\\files\\catalog_data\\{item}\\comments.txt", 'a',encoding="utf-8") as file:
         file.write(user+";"+comment+"\n")
+
+def addLike(user,item,like):
+    """
+    Arg-user|str , Series/Movie name|str , like|int(-2 to 2 with 0 as the default)
+    Returns-Adds likes to . . .
+    """
+    if not os.path.isdir(f".\\files\\user_data\\{user}"):
+        os.mkdir(f".\\files\\user_daya\\{user}")
+    if not os.path.isfile(f".\\files\\user_data\\{user}\\likes.txt"):
+        open(f".\\files\\user_data\\{user}\\likes.txt", 'w').close()
+    with open(f".\\files\\user_data\\{user}\\likes.txt", 'a',encoding="utf-8") as file:
+        file.write(item+";"+like+"\n")
