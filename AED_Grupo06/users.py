@@ -271,8 +271,9 @@ def addFavorite(user,item):
             if not os.path.isdir(f".\\files\\user_data\\{user}"):
                 os.mkdir(f".\\files\\user_data\\{user}")
             if not os.path.isfile(f".\\files\\user_data\\{user}\\favorites.txt"):
-                with open(f".\\files\\user_data\\{user}\\favorites.txt", 'w') as file:
-                    file.write(item+"\n")
+                open(f".\\files\\user_data\\{user}\\favorites.txt", 'w').close()
+            with open(f".\\files\\user_data\\{user}\\favorites.txt", 'a',encoding="utf-8") as file:
+                file.write(item+"\n")
 
 def removeFavorite(user,item):
     """
@@ -288,3 +289,29 @@ def removeFavorite(user,item):
     for line in newFavoritesList:
         file.write(line)
     file.close()
+
+def addRating(user,item,rating):
+    """
+    Arg-user|str , Serie/Movie name|str ,rating|int(0-5)
+    Returns-Adds ratting to. . .
+    """
+    if not os.path.isdir(f".\\files\\catalog_data\\{item}"):
+        os.mkdir(f".\\files\\catalog_data\\{item}")
+    if not os.path.isfile(f".\\files\\catalog_data\\{item}\\reviews.txt"):
+        open(f".\\files\\catalog_data\\{user}\\favorites.txt", 'w').close()
+    with open(f".\\files\\catalog_data\\{item}\\reviews.txt", 'a',encoding="utf-8") as file:
+        file.write(user+";"+rating+"\n")
+
+def addComment(user,item,comment):
+    """
+    Arg-user|str , Series/Movie name|str ,comment|str
+    Returns-Adds comment to . . .
+    """
+    #checks (and creates) for series folder
+    if not os.path.isdir(f".\\files\\catalog_data\\{item}"):
+        os.mkdir(f".\\files\\catalog_data\\{item}")
+    #checks (and creates) for series coments file
+    if not os.path.isfile(f".\\files\\catalog_data\\{item}\\comments.txt"):
+        open(f".\\files\\catalog_data\\{user}\\comments.txt", 'w').close()
+    with open(f".\\files\\catalog_data\\{item}\\comments.txt", 'a',encoding="utf-8") as file:
+        file.write(user+";"+comment+"\n")
