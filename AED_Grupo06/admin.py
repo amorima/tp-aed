@@ -215,6 +215,7 @@ def blockUsers(user,time):
         campos = line.split(";")
         if campos[0] == user:
             #Time needs work ;-;
+            block=0
             newUserList.append(line+block)
             continue
         else:
@@ -228,6 +229,11 @@ def isBlocked(user):
     """
     Checks is the user is blocked and for how long
     """
+    userList=lerFicheiro(user_db)
+    for line in userList:
+        campos = line.split(";")
+        if campos[0] == user:
+            continue
 
 def sendNotification(mensage):
     """
