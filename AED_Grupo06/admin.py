@@ -209,6 +209,25 @@ def blockUsers(user,time):
     Arg-username|str, time
     Returns-Gives the given username a temporary tag which blocks the login for that given time
     """
+    userList=lerFicheiro(user_db)
+    newUserList=[]
+    for line in userList:
+        campos = line.split(";")
+        if campos[0] == user:
+            #Time needs work ;-;
+            newUserList.append(line+block)
+            continue
+        else:
+            newUserList.append(line)
+    file= open(user_db,"w",encoding="utf-8")
+    for line in newUserList:
+        file.write(line)
+    file.close()
+
+def isBlocked(user):
+    """
+    Checks is the user is blocked and for how long
+    """
 
 def sendNotification(mensage):
     """
