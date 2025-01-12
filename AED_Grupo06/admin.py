@@ -203,3 +203,27 @@ def removeSubCat(mainCategory,subCategory):
     for line in newCategoryList:
         file.write(line)
     file.close()
+
+def blockUsers(user,time):
+    """
+    Arg-username|str, time
+    Returns-Gives the given username a temporary tag which blocks the login for that given time
+    """
+
+def sendNotification(mensage):
+    """
+    Arg-mensage|str
+    Notification Format = id;mensage
+    Returns-
+    """
+    id="0"
+    notificationList=lerFicheiro(".\\files\\notifications.txt")
+    for line in notificationList:
+        try:
+            campos = line.split(";")
+            id=str(int(campos[0])+1)
+        except:continue
+    file= open(".\\files\\notifications.txt","a",encoding="utf-8")
+    file.write(id+";"+mensage)
+    file.close()
+    
