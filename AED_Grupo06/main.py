@@ -322,8 +322,6 @@ def ecra_filmes():
     # Limpar a janela atual
     limpar_area_central()
 
-    menu_lateral()
-
     mock = ctk.CTkImage(Image.open('./images/filmes_mock.png'), size=(894, 521))
     label_mock = ctk.CTkLabel(app, text="", image=mock)
     label_mock.place(x=224, y=108)
