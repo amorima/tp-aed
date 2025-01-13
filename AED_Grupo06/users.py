@@ -327,3 +327,9 @@ def addLike(user,item,like):
         open(f".\\files\\user_data\\{user}\\likes.txt", 'w').close()
     with open(f".\\files\\user_data\\{user}\\likes.txt", 'a',encoding="utf-8") as file:
         file.write(item+";"+like+"\n")
+
+def notificationRead(id):
+    """
+    Marks the notification as read
+    """
+    #help
