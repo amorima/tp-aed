@@ -85,7 +85,7 @@ def logIn(password,mail,next,next2):
             CTkMessagebox.CTkMessagebox(title="LogIn", message="Password Incorreta",icon="warning", option_1="Ok") #Pop up Password
             return
     if userExists==False:
-        CTkMessagebox.CTkMessagebox(title="LogIn", message="User não existe \nPor favor faça Sign In",icon="warning", option_1="Ok") #Pop up Sign In
+        CTkMessagebox.CTkMessagebox(title="LogIn", message="User não existe \nPor favor faça criar conta",icon="warning", option_1="Ok") #Pop up Sign In
 
 def sign(user,password,mail,next):
     """
