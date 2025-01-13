@@ -226,7 +226,7 @@ def blockUsers(user,time):
         file.write(line)
     file.close()
 
-def isBlocked(user):
+def isBlocked(user):#needs work
     """
     Checks is the user is blocked and for how long
     """
@@ -234,7 +234,12 @@ def isBlocked(user):
     for line in userList:
         campos = line.split(";")
         if campos[0] == user:
-            continue
+            block_instant=campos[4]
+            blocked_time=campos[5]
+            current_time = datetime.timedelta()
+            if block_instant + blocked_time <= current_time:
+                return False
+    return True
 
 def sendNotification(mensage):
     """
