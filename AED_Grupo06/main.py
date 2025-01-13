@@ -312,6 +312,10 @@ def ecra_series():
     
     ctk.set_appearance_mode("dark")
 
+    linha = ctk.CTkImage(Image.open('./images/Line_ecra.png'), size=(1, 472))
+    label_linha = ctk.CTkLabel(app, text="", image=linha)
+    label_linha.place(x=145, y=151)
+
     mock = ctk.CTkImage(Image.open('./images/series_mockup.png'), size=(894, 521))
     label_mock = ctk.CTkLabel(app, text="", image=mock)
     label_mock.place(x=224, y=108)
@@ -321,6 +325,10 @@ def ecra_filmes():
     """
     # Limpar a janela atual
     limpar_area_central()
+
+    linha = ctk.CTkImage(Image.open('./images/Line_ecra.png'), size=(1, 472))
+    label_linha = ctk.CTkLabel(app, text="", image=linha)
+    label_linha.place(x=145, y=151)
 
     mock = ctk.CTkImage(Image.open('./images/filmes_mock.png'), size=(894, 521))
     label_mock = ctk.CTkLabel(app, text="", image=mock)
