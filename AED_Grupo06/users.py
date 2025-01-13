@@ -50,15 +50,15 @@ def passwordChecker(password):
     if minLenght and capitalUsed and numberUsed and specialUsed and splitterUsed==False: 
         return "True"
     if not minLenght:
-        shortMsm="-Too short(8 caracther minimun)\n"
+        shortMsm="-Deve conter pelo menos 8 caracteres\n"
     if not capitalUsed:
-        capitalMsm="-Should use at least one Capital Letter\n"
+        capitalMsm="-Deve conter pelo menos uma maisuscula\n"
     if not numberUsed:
-        numberMsm="-Should use at least one number\n"
+        numberMsm="-Deve conter pelo menos um numero\n"
     if not specialUsed:
-        specialMsm="-Should use at least one Speacial Caracther\n"
+        specialMsm="-Deve conter pelo menus um caracter especial\n"
     if splitterUsed:
-        splitterMsm="-Caracther ; is invalid\n"
+        splitterMsm="-Caracter ; não é valido\n"
     Msm=shortMsm+capitalMsm+numberMsm+specialMsm+splitterMsm
     return Msm
 
@@ -168,7 +168,7 @@ def emailChecker(email):
     """
     @ checker
     """
-    valid = "-Email must contain @\n"
+    valid = "-Email deve conter um @\n"
     for letter in email:
         if letter == "@" :
             valid = "True"
