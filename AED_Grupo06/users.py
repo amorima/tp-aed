@@ -321,9 +321,9 @@ def addLike(user,item,like):
     Arg-user|str , Series/Movie name|str , like|int(-2 to 2 with 0 as the default)
     Returns-Adds likes to . . .
     """
-    if not os.path.isdir(f".\\files\\user_data\\{user}"):
-        os.mkdir(f".\\files\\user_daya\\{user}")
-    if not os.path.isfile(f".\\files\\user_data\\{user}\\likes.txt"):
+    if not os.path.exists(f".\\files\\user_data\\{user}"):
+        os.makedirs(f".\\files\\user_data\\{user}")
+    if not os.path.exists(f".\\files\\user_data\\{user}\\likes.txt"):
         open(f".\\files\\user_data\\{user}\\likes.txt", 'w').close()
     with open(f".\\files\\user_data\\{user}\\likes.txt", 'a',encoding="utf-8") as file:
         file.write(item+";"+like+"\n")
@@ -333,3 +333,9 @@ def notificationRead(id):
     Marks the notification as read
     """
     #help
+
+#tester
+user=input("user:")
+item=input("series:")
+like="5"
+addLike(user,item,like)
