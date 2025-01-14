@@ -3,7 +3,8 @@
 #-----------
 import os
 import customtkinter as ctk
-from PIL import Image
+from tkinter import filedialog
+from PIL import Image, ImageTk
 from users import *
 
 
@@ -14,6 +15,11 @@ from users import *
 selected_button = None
 
 def toggle_password_visibility(entry):
+    """Mostra ou oculta a palavra passe
+
+    Args:
+        entry (_type_): _description_
+    """
     if entry.cget("show") == "*":
         entry.configure(show="")  # Show the text
     else:
@@ -124,7 +130,7 @@ def splashscreen():
     # Adicionar o logótipo
     logo = ctk.CTkImage(Image.open('./images/logo.png'), size=(373, 142))
     label_logo = ctk.CTkLabel(app, text="", image=logo)
-    label_logo.place(relx=0.5, rely=0.5, anchor="center")  # Centraliza o logótipo
+    label_logo.place(relx=0.5, rely=0.5, anchor="center")  
 
     # Agendar a transição para a próxima função
     app.after(1500, iniciar_app)  # Transita para `iniciar_app` após 3 segundos
