@@ -5,8 +5,6 @@ import os
 import CTkMessagebox
 #Files
 #-----------------------------------
-#user_db=".\\AED_Grupo06\\files\\users.txt"
-#user_data=.\\files\\user_data\\...
 user_db=".\\files\\users.txt"
 #Funções de Gestão de Users
 #--------------
@@ -333,9 +331,3 @@ def notificationRead(id):
     Marks the notification as read
     """
     #help
-
-#tester
-user=input("user:")
-item=input("series:")
-like="5"
-addLike(user,item,like)
