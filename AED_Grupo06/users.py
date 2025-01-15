@@ -62,7 +62,7 @@ def passwordChecker(password):
 
 def logIn(password,mail,next,next2):
     """
-    next-proxima ação a fazer
+    função guarda na função global user_ativo o user correspondente ao email e passwords corretos
     A função recebe a procura o username na lista
     Email&Pass Corret-Entra na aplicação
     Email Corret-Aviso de password errado
@@ -71,11 +71,14 @@ def logIn(password,mail,next,next2):
         Username;Password;Email;Admin/User
     O ultimo campo é preenchido como User como default 
     """
+    global user_ativo
+    user_ativo = ""
     userList=lerFicheiro(user_db)
     userExists=False
     for userLine in userList:
         campos = userLine.split(";")
         if mail == campos[2] and password == campos[1]:
+            user_ativo=campos[0]
             next2()
             next()
             return
