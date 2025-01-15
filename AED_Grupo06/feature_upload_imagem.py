@@ -70,12 +70,12 @@ ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("green")
 
 
-root = ctk.CTk()
-root.title("Guardar avatar")
-root.geometry("400x500")
+app = ctk.CTk()
+app.title("Guardar avatar")
+app.geometry("400x500")
 
 # Circular placeholder frame
-placeholder_frame = ctk.CTkFrame(master=root, width=110, height=110, corner_radius=110)
+placeholder_frame = ctk.CTkFrame(master=app, width=110, height=110, corner_radius=110)
 placeholder_frame.pack(pady=30)
 
 # Label for displaying the image
@@ -100,4 +100,4 @@ upload_button = ctk.CTkButton(
 upload_button.place(relx=0.5, rely=0.5, anchor="center")
 
 # Run the Tkinter event loop
-root.mainloop()
+app.mainloop()

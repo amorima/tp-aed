@@ -4,8 +4,8 @@
 import os
 import customtkinter as ctk
 from tkinter import filedialog
-from PIL import Image, ImageTk
-from users import *
+from PIL import Image, ImageDraw
+import users
 
 
 #######################
@@ -32,7 +32,7 @@ def limpar_area_central():
         if widget.winfo_x() > 145:  # Assume que o menu lateral ocupa x <= 145
             widget.destroy()
 
-def limpar_all():
+def limpar_todos_widgets():
     for widget in app.winfo_children():
         widget.destroy()
     menu_lateral()
@@ -114,7 +114,7 @@ def menu_lateral():
         height=89,
         text="",               # Sem texto, apenas a imagem
         image=botao_perfil_image,
-        command=lambda: [update_active_screen(botao_perfil), ecra_series()],
+        command=lambda: [update_active_screen(botao_perfil), ecra_perfil()],
         fg_color="transparent",   # Fundo transparente para só aparecer a imagem
         hover_color="#181818"     # Cor ao passar o rato (opcional)
     )
@@ -133,9 +133,9 @@ def splashscreen():
     label_logo.place(relx=0.5, rely=0.5, anchor="center")  
 
     # Agendar a transição para a próxima função
-    app.after(1500, iniciar_app)  # Transita para `iniciar_app` após 3 segundos
+    app.after(1500, ecra_login)  # Transita para `iniciar_app` após 3 segundos
 
-def iniciar_app():
+def ecra_login():
     """Inicializa a aplicação principal."""
     # Limpar a janela atual
     for widget in app.winfo_children():
@@ -205,7 +205,7 @@ def iniciar_app():
                            text_color="#000",
                            hover_color="#D59C2A",
                            fg_color="#F2C94C",
-                           command= lambda:logIn(entry_password.get(),entry_email.get(),ecra_series,limpar_all),
+                           command= lambda:users.logIn(entry_password.get(),entry_email.get(),ecra_series,limpar_todos_widgets),
                            width=173,
                            height=36)
     button_iniciar_sessao.place(x=513, y=297)
@@ -305,7 +305,7 @@ def criar_conta():
                            text_color="#fff",
                            hover_color="#3F685F",
                            fg_color="#4F8377",
-                           command=lambda:sign(entry_username.get(),entry_password.get(),entry_email.get(),iniciar_app),
+                           command=lambda:sign(entry_username.get(),entry_password.get(),entry_email.get(),ecra_login),
                            width=173,
                            height=36)
     button_criar_conta.place(x=513, y=414)
@@ -340,6 +340,95 @@ def ecra_filmes():
     label_mock = ctk.CTkLabel(app, text="", image=mock)
     label_mock.place(x=224, y=108)
 
+def ecra_perfil():
+    """Renderiza a dashboard do utilizador
+    """
+    # Limpar a janela atual
+    limpar_area_central()
+
+    # Circular placeholder frame
+    placeholder_frame = ctk.CTkFrame(master=app, width=100, height=100, corner_radius=110)
+    placeholder_frame.place(x=179, y=151)
+
+    # Label for displaying the image
+    global image_label
+    image_label = ctk.CTkLabel(master=placeholder_frame, text="", width=100, height=100, bg_color="#242424")
+    image_label.place(relx=0.5, rely=0.5, anchor="center")
+
+    # Button for uploading the image (centered in the placeholder)
+    upload_button = ctk.CTkButton(
+    master=placeholder_frame,
+    text="Mudar",
+    command=upload_and_save_image,
+    font=ctk.CTkFont(size=10, weight="bold"),
+    fg_color="transparent",
+    bg_color="transparent",  # Transparent button background
+    hover_color="#242424",    # Optional hover effect
+    text_color="#FFFFFF",     # Text remains visible
+    border_width=1,           # Optional border
+    border_color="white",   # Border color matches the placeholder
+    width=10,
+    height=30
+    )
+    upload_button.place(relx=0.5, rely=0.5, anchor="center")
+
+def ensure_user_folder_exists(username):
+    """Garante que a pasta para o utilizador ativo existe."""
+    user_folder = os.path.join(root_dir, "files", "users", username)
+    if not os.path.exists(user_folder):
+        os.makedirs(user_folder)
+        print(f"Pasta criada para o utilizador: {user_folder}")
+    return user_folder
+
+def crop_to_square(image_path):
+    """Crop the uploaded image to a square and return the cropped image."""
+    with Image.open(image_path) as img:
+        width, height = img.size
+        side_length = min(width, height)
+        left = (width - side_length) // 2
+        top = (height - side_length) // 2
+        right = left + side_length
+        bottom = top + side_length
+        return img.crop((left, top, right, bottom))
+
+def apply_circle_mask(image):
+    """Apply a circular mask to the image and return it."""
+    size = (200, 200)
+    image = image.resize(size, Image.LANCZOS)
+    mask = Image.new("L", size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0, size[0], size[1]), fill=255)
+    circular_image = Image.new("RGBA", size)
+    circular_image.paste(image, (0, 0), mask)
+    return circular_image
+
+def upload_and_save_image():
+    """Upload an image, save the cropped version, and render it in a circular frame."""
+    file_path = filedialog.askopenfilename(
+        title="Selecione uma imagem",
+        filetypes=[("Imagens", "*.png;*.jpg;*.jpeg;*.bmp;*.gif")]
+    )
+    if file_path:
+        user_folder = ensure_user_folder_exists(users.user_ativo)
+        
+       
+        cropped_image = crop_to_square(file_path)
+        
+      
+        save_path = os.path.join(user_folder, "profile_picture.png")
+        cropped_image.save(save_path)
+        print(f"Imagem guardada aqui: {save_path}")
+        
+        # Display the circular version of the cropped image
+        circular_image = apply_circle_mask(cropped_image)
+        display_image(circular_image)
+
+def display_image(image):
+    """Display the circular image in the placeholder."""
+    ctk_image = ctk.CTkImage(image, size=(100, 100))
+    image_label.configure(image=ctk_image, text="")
+    image_label.image = ctk_image
+
 #########################
 #### CONFIGURAÇÕES ######
 #########################
@@ -348,6 +437,8 @@ def ecra_filmes():
 root_dir = os.path.dirname(os.path.abspath(__file__))
 # Altera o diretório atual para o diretório do ficheiro Python
 os.chdir(root_dir)
+#Diretorio dos Ficheiros
+USERS_DIR = os.path.join(root_dir, "files", "users")
 
 #######################
 #### INÍCIO DA GUI ####
@@ -361,7 +452,7 @@ app.title("Hoot - Gestor de Filmes e Séries")
 
 # Iniciar o CustomTkinter
 ctk.set_appearance_mode("dark")  # Modo claro ou escuro (Pode ser "system", "dark", "light")
-ctk.set_default_color_theme("blue")  # Tema padrão (Pode ser "blue", "dark-blue", "green")
+ctk.set_default_color_theme("green")  # Tema padrão (Pode ser "blue", "dark-blue", "green")
 
 # Alterar o ícone da aplicação
 app.iconbitmap("./images/hoot.ico")
