@@ -305,7 +305,7 @@ def criar_conta():
                            text_color="#fff",
                            hover_color="#3F685F",
                            fg_color="#4F8377",
-                           command=lambda:sign(entry_username.get(),entry_password.get(),entry_email.get(),ecra_login),
+                           command=lambda:users.sign(entry_username.get(),entry_password.get(),entry_email.get(),ecra_login),
                            width=173,
                            height=36)
     button_criar_conta.place(x=513, y=414)
