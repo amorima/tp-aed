@@ -5,6 +5,7 @@ import os
 import customtkinter as ctk
 from tkinter import filedialog
 from PIL import Image, ImageDraw
+from tkhtmlview import HTMLLabel
 import users
 
 
@@ -13,9 +14,10 @@ import users
 #######################
 # Global variable to keep track of the currently selected button
 selected_button = None
+scrollable_frame_para_ver = None
 
 def toggle_password_visibility(entry):
-    """Mostra ou oculta a palavra passe
+    """Mostra ou oculta a palavra passes
 
     Args:
         entry (_type_): _description_
@@ -29,7 +31,7 @@ def limpar_area_central():
     """Remove todos os widgets da área central, mas mantém o menu lateral."""
     for widget in app.winfo_children():
         # Mantém os widgets que fazem parte do menu lateral
-        if widget.winfo_x() > 145:  # Assume que o menu lateral ocupa x <= 145
+        if widget.winfo_x() > 150:  
             widget.destroy()
 
 def limpar_todos_widgets():
@@ -51,7 +53,7 @@ def menu_lateral():
 
     linha = ctk.CTkImage(Image.open('./images/Line_ecra.png'), size=(1, 472))
     label_linha = ctk.CTkLabel(app, text="", image=linha)
-    label_linha.place(x=145, y=151)
+    label_linha.place(x=130, y=151)
 
     # Carregar a imagem e redimensionar
     botao_series_image = ctk.CTkImage(
@@ -318,23 +320,68 @@ def ecra_series():
     
     ctk.set_appearance_mode("dark")
 
-    linha = ctk.CTkImage(Image.open('./images/Line_ecra.png'), size=(1, 472))
-    label_linha = ctk.CTkLabel(app, text="", image=linha)
-    label_linha.place(x=145, y=151)
+    global scrollable_frame_para_ver, scrollable_frame_direita
+    scrollable_frame_para_ver = ctk.CTkScrollableFrame(app, width=460, height=470)
+    scrollable_frame_para_ver.place(x=160, y=150)
 
-    mock = ctk.CTkImage(Image.open('./images/series_mockup.png'), size=(894, 521))
-    label_mock = ctk.CTkLabel(app, text="", image=mock)
-    label_mock.place(x=224, y=108)
+    scrollable_frame_direita = ctk.CTkScrollableFrame(app, width=460, height=470)
+    scrollable_frame_direita.place(x=680, y=150)
+
+    card_series_para_ver(
+    "./images/catalog/hp1.jpg",
+    "Harry Potter e a Pedra Filosofal",
+    "Um órfão descobre que é um bruxo e começa uma jornada mágica...",
+    "https://www.youtube.com/watch?v=VyHV0BRtdxo",
+    "4.8",
+    "2001"
+    )
+    card_series_para_ver(
+    "./images/catalog/hp1.jpg",
+    "Harry Potter e a Pedra Filosofal",
+    "Um órfão descobre que é um bruxo e começa uma jornada mágica...",
+    "https://www.youtube.com/watch?v=VyHV0BRtdxo",
+    "4.8",
+    "2001"
+    )
+    card_series_para_ver(
+    "./images/catalog/hp2.jpg",
+    "Harry Potter e a Pedra Filosofal",
+    "Um órfão descobre que é um bruxo e começa uma jornada mágica...",
+    "https://www.youtube.com/watch?v=VyHV0BRtdxo",
+    "4.7",
+    "2002"
+    )
+    card_series_para_ver(
+    "./images/catalog/hp3.jpg",
+    "Harry Potter e a Pedra Filosofal",
+    "Um órfão descobre que é um bruxo e começa uma jornada mágica...",
+    "https://www.youtube.com/watch?v=VyHV0BRtdxo",
+    "4.8",
+    "2003"
+    )
+    card_series_para_ver(
+    "./images/catalog/hp4.jpg",
+    "Harry Potter e a Pedra Filosofal",
+    "Um órfão descobre que é um bruxo e começa uma jornada mágica...",
+    "https://www.youtube.com/watch?v=VyHV0BRtdxo",
+    "4.8",
+    "2001"
+    )
+    card_series_para_ver(
+    "./images/catalog/hp1.jpg",
+    "Harry Potter e a Pedra Filosofal",
+    "Um órfão descobre que é um bruxo e começa uma jornada mágica...",
+    "https://www.youtube.com/watch?v=VyHV0BRtdxo",
+    "4.8",
+    "2004"
+    )
+
 
 def ecra_filmes():
     """Renderiza o ecrã principal
     """
     # Limpar a janela atual
     limpar_area_central()
-
-    linha = ctk.CTkImage(Image.open('./images/Line_ecra.png'), size=(1, 472))
-    label_linha = ctk.CTkLabel(app, text="", image=linha)
-    label_linha.place(x=145, y=151)
 
     mock = ctk.CTkImage(Image.open('./images/filmes_mock.png'), size=(894, 521))
     label_mock = ctk.CTkLabel(app, text="", image=mock)
@@ -359,7 +406,7 @@ def ecra_perfil():
     upload_button = ctk.CTkButton(
     master=placeholder_frame,
     text="Mudar",
-    command=upload_and_save_image,
+    command=upload_e_guarda_avatar,
     font=ctk.CTkFont(size=10, weight="bold"),
     fg_color="transparent",
     bg_color="transparent",  # Transparent button background
@@ -372,7 +419,7 @@ def ecra_perfil():
     )
     upload_button.place(relx=0.5, rely=0.5, anchor="center")
 
-def ensure_user_folder_exists(username):
+def verifica_se_pasta_existe(username):
     """Garante que a pasta para o utilizador ativo existe."""
     user_folder = os.path.join(root_dir, "files", "users", username)
     if not os.path.exists(user_folder):
@@ -380,7 +427,7 @@ def ensure_user_folder_exists(username):
         print(f"Pasta criada para o utilizador: {user_folder}")
     return user_folder
 
-def crop_to_square(image_path):
+def crop_para_quadrado(image_path):
     """Crop the uploaded image to a square and return the cropped image."""
     with Image.open(image_path) as img:
         width, height = img.size
@@ -391,7 +438,7 @@ def crop_to_square(image_path):
         bottom = top + side_length
         return img.crop((left, top, right, bottom))
 
-def apply_circle_mask(image):
+def aplica_mascara_circular(image):
     """Apply a circular mask to the image and return it."""
     size = (200, 200)
     image = image.resize(size, Image.LANCZOS)
@@ -402,17 +449,17 @@ def apply_circle_mask(image):
     circular_image.paste(image, (0, 0), mask)
     return circular_image
 
-def upload_and_save_image():
+def upload_e_guarda_avatar():
     """Upload an image, save the cropped version, and render it in a circular frame."""
     file_path = filedialog.askopenfilename(
         title="Selecione uma imagem",
         filetypes=[("Imagens", "*.png;*.jpg;*.jpeg;*.bmp;*.gif")]
     )
     if file_path:
-        user_folder = ensure_user_folder_exists(users.user_ativo)
+        user_folder = verifica_se_pasta_existe(users.user_ativo)
         
        
-        cropped_image = crop_to_square(file_path)
+        cropped_image = crop_para_quadrado(file_path)
         
       
         save_path = os.path.join(user_folder, "profile_picture.png")
@@ -420,14 +467,137 @@ def upload_and_save_image():
         print(f"Imagem guardada aqui: {save_path}")
         
         # Display the circular version of the cropped image
-        circular_image = apply_circle_mask(cropped_image)
-        display_image(circular_image)
+        circular_image = aplica_mascara_circular(cropped_image)
+        mostra_imagem(circular_image)
 
-def display_image(image):
+def mostra_imagem(image):
     """Display the circular image in the placeholder."""
     ctk_image = ctk.CTkImage(image, size=(100, 100))
     image_label.configure(image=ctk_image, text="")
     image_label.image = ctk_image
+
+def card_series_para_ver(cat_img_path, movie_name, description="", trailer="", rating="", year=""):
+    """Creates a clickable card for a movie or series
+    
+    Args:
+        cat_img_path (str): Path to movie image
+        movie_name (str): Name of the movie
+        description (str): Movie description
+        trailer (str): URL to movie trailer
+        rating (str): Movie rating
+        year (str): Release year
+    """
+    try:
+        # Load the image and resize
+        card_image = Image.open(cat_img_path).resize((100, 148), Image.LANCZOS)
+        
+        # Create a rounded mask
+        mask = Image.new("L", card_image.size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.rounded_rectangle([(0, 0), card_image.size], radius=6, fill=255)
+        
+        # Apply the mask to the image
+        rounded_card_image = Image.new("RGBA", card_image.size)
+        rounded_card_image.paste(card_image, (0, 0), mask)
+        
+        # Create a frame for each card
+        card_frame = ctk.CTkFrame(scrollable_frame_para_ver, width=110, height=158)
+        card_frame.grid_propagate(False)
+        
+        # Create a label for the image and add it to the card frame
+        card_image_ctk = ctk.CTkImage(rounded_card_image, size=(100, 148))
+        card_label = ctk.CTkLabel(card_frame, image=card_image_ctk, text="")
+        card_label.pack(expand=True)
+        
+        # Define the number of columns
+        columns = 4  # You can adjust this value as needed
+
+        # Get the current number of cards
+        num_cards = len(scrollable_frame_para_ver.winfo_children()) - 1
+        
+        # Place the card in the grid
+        row = num_cards // columns
+        column = num_cards % columns
+        card_frame.grid(row=row, column=column, padx=5, pady=5)
+        
+        # Make card clickable
+        def on_click(event):
+            mostrar_detalhes_filme(movie_name, description, trailer, rating, year)
+
+        card_frame.bind("<Button-1>", on_click)
+        card_label.bind("<Button-1>", on_click)
+        
+        # Add hover effect
+        def on_enter(event):
+            card_frame.configure(fg_color=("#DBDBDB", "#2B2B2B"))
+            
+        def on_leave(event):
+            card_frame.configure(fg_color=("gray86", "#242424"))
+            
+        card_frame.bind("<Enter>", on_enter)
+        card_frame.bind("<Leave>", on_leave)
+        
+        
+    except (FileNotFoundError, IOError) as e:
+        print(f"Error loading image: {e}")
+
+def mostrar_detalhes_filme(movie_name, description, trailer, rating, year):
+    """Shows movie details in a new frame
+    
+    Args:
+        movie_name (str): Name of the movie
+        description (str): Movie description
+        trailer (str): YouTube trailer URL
+        rating (str): Movie rating
+        year (str): Release year
+    """
+    # Create new frame for movie details
+    detalhes_frame = ctk.CTkFrame(app, width=800, height=500, corner_radius=6, fg_color="#4f8377")
+    detalhes_frame.place(relx=0.5, rely=0.5, anchor="center")
+    
+    # Add close button
+    botao_fechar = ctk.CTkButton(
+        detalhes_frame,
+        text="X",
+        width=30,
+        command=detalhes_frame.destroy,
+        fg_color="#a3d9c8",
+        text_color="#121212"
+    )
+    botao_fechar.place(x=760, y=10)
+    
+    # Add movie details
+    titulo = ctk.CTkLabel(
+        detalhes_frame,
+        text=movie_name,
+        font=("Helvetica", 24, "bold"),
+        text_color="#ffffff"
+    )
+    titulo.place(x=20, y=20)
+    
+    desc = ctk.CTkLabel(
+        detalhes_frame,
+        text=description,
+        font=("Helvetica", 12),
+        text_color="#ffffff",
+        wraplength=700
+    )
+    desc.place(x=20, y=60)
+    
+    # Add YouTube trailer
+    html_label = HTMLLabel(
+        detalhes_frame,
+        html=f'<iframe width="560" height="315" src="{trailer}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
+    )
+    html_label.place(x=20, y=80)
+    
+    info = ctk.CTkLabel(
+        detalhes_frame,
+        text=f"Rating: {rating} | Ano: {year}",
+        font=("Helvetica", 12, "bold"),
+        text_color="#ffffff"
+    )
+    info.place(x=20, y=460)
 
 #########################
 #### CONFIGURAÇÕES ######
