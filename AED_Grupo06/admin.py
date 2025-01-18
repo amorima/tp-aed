@@ -2,7 +2,7 @@
 #Biblioteca
 #-----------
 import os
-import datetime
+from datetime import datetime , timedelta
 #Files
 #-----------------------------------
 user_db=".\\files\\user.txt"
@@ -236,8 +236,8 @@ def isBlocked(user):#needs work
         if campos[0] == user:
             block_instant=campos[4]
             blocked_time=campos[5]
-            current_time = datetime.timedelta()
-            if block_instant + blocked_time <= current_time:
+            current_time=datetime.now()
+            if blocked_time+block_instant<current_time:
                 return False
     return True
 
