@@ -20,3 +20,4 @@ AAAAAAA;A1Asassaasss!;aaa@;User
 AMORIMA;1;1;User
 AAAAAA;AAAaaa111!!!;antonio@antonio.pt;Admin
 AAAA;AAA111!!!;AAAA@;User
+Admin;Admin;Admin;Admin
