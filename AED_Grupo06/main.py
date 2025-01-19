@@ -5,7 +5,8 @@ import os
 import customtkinter as ctk
 from tkinter import filedialog
 from PIL import Image, ImageDraw
-from tkhtmlview import HTMLLabel
+import webbrowser 
+from tkVideoPlayer import TkinterVideo # Se der erro, instalar com `pip install --only-binary :all: tkvideoplayer`
 import users
 
 
@@ -15,9 +16,43 @@ import users
 # Global variable to keep track of the currently selected button
 selected_button = None
 scrollable_frame_para_ver = None
+username = None
+global avatar_label
+avatar_label = None
+
+
+# Criar um frame container para o menu
+
+def iniciar_frames():
+    """ #Destruição de todos os widgets
+    for widget in app.winfo_children():
+        widget.destroy() """
+    print(users.user_ativo)
+    # Muda o modo para dark
+    ctk.set_appearance_mode("dark")
+    # Criação de frames da app principal
+    global frame_series, frame_filmes, frame_explorar, frame_perfil
+    frame_series = ctk.CTkFrame(app, width=1050, height=540, fg_color="#242424")
+    frame_series.place(relx=1, rely=1, anchor="se")
+
+    frame_filmes = ctk.CTkFrame(app, width=1050, height=540, fg_color="#242424")
+    frame_filmes.place(relx=1, rely=1, anchor="se")
+
+    frame_explorar = ctk.CTkFrame(app, width=1050, height=540, fg_color="#242424")
+    frame_explorar.place(relx=1, rely=1, anchor="se")
+
+    frame_perfil = ctk.CTkFrame(app, width=1050, height=540, fg_color="#242424")
+    frame_perfil.place(relx=1, rely=1, anchor="se")
+
+    controlos(users.user_ativo)
+    ecra_series()
+    ecra_filmes()
+    ecra_explorar()
+    ecra_perfil(users.user_ativo)
+    frame_series.tkraise()
 
 def toggle_password_visibility(entry):
-    """Mostra ou oculta a palavra passes
+    """Mostra ou oculta a palavra-passe
 
     Args:
         entry (_type_): _description_
@@ -31,13 +66,13 @@ def limpar_area_central():
     """Remove todos os widgets da área central, mas mantém o menu lateral."""
     for widget in app.winfo_children():
         # Mantém os widgets que fazem parte do menu lateral
-        if widget.winfo_x() > 150:  
+        if widget.winfo_x() > 150:
             widget.destroy()
 
 def limpar_todos_widgets():
     for widget in app.winfo_children():
         widget.destroy()
-    menu_lateral()
+    controlos(users.user_ativo)
 
 def update_active_screen(button):
     global selected_button
@@ -46,7 +81,32 @@ def update_active_screen(button):
     button.configure(fg_color="#181818")  # Set the selected button's color
     selected_button = button
 
-def menu_lateral():
+def controlos(username):
+    # Verifica a imagem de utilizador
+    user_folder = os.path.join(root_dir, "files", "users", username)
+    if not os.path.exists(user_folder):
+        image = Image.open('./images/default_avatar.png')
+    else:
+        image = Image.open(os.path.join(user_folder, "profile_picture.png"))
+
+    # Create a CTkLabel with right-aligned text
+    label = ctk.CTkLabel(
+        app,
+        text=username,
+        height=30,
+        anchor="e",  # Align the text to the right
+        justify="right",  # Justify the text to the right
+        wraplength=300  # Set the maximum width in pixels before wrapping
+    )
+    label.place(x=1000, y=33)
+
+    avatar = ctk.CTkImage(image, size=(55, 55))
+    global avatar_label
+    if avatar_label is not None:
+        avatar_label.destroy()
+    avatar_label = ctk.CTkLabel(app, text="", image=avatar)
+    avatar_label.place(x=1115, y=23)
+
     logo_p = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 48))
     label_logo_p = ctk.CTkLabel(app, text="", image=logo_p)
     label_logo_p.place(x=29, y=26)
@@ -63,12 +123,12 @@ def menu_lateral():
         app,
         width=68,
         height=89,
-        text="",               # Sem texto, apenas a imagem
+        text="",  # Sem texto, apenas a imagem
         image=botao_series_image,
-        command=lambda: [update_active_screen(botao_series), ecra_series()],
-        fg_color="transparent",   # Fundo transparente para só aparecer a imagem
-        hover_color="#181818"     # Cor ao passar o rato (opcional)
-    ) 
+        command=lambda: [update_active_screen(botao_series), frame_series.tkraise()],
+        fg_color="transparent",  # Fundo transparente para só aparecer a imagem
+        hover_color="#181818"  # Cor ao passar o rato (opcional)
+    )
     # Posicionar o botão
     botao_series.place(x=28, y=151)
 
@@ -80,12 +140,12 @@ def menu_lateral():
         app,
         width=68,
         height=89,
-        text="",               # Sem texto, apenas a imagem
+        text="",  # Sem texto, apenas a imagem
         image=botao_filmes_image,
-        command=lambda: [update_active_screen(botao_filmes), ecra_filmes()],
-        fg_color="transparent",   # Fundo transparente para só aparecer a imagem
-        hover_color="#181818"     # Cor ao passar o rato (opcional)
-    ) 
+        command=lambda: [update_active_screen(botao_filmes), frame_filmes.tkraise()],
+        fg_color="transparent",  # Fundo transparente para só aparecer a imagem
+        hover_color="#181818"  # Cor ao passar o rato (opcional)
+    )
     # Posicionar o botão
     botao_filmes.place(x=28, y=278)
 
@@ -97,11 +157,11 @@ def menu_lateral():
         app,
         width=68,
         height=89,
-        text="",               # Sem texto, apenas a imagem
+        text="",  # Sem texto, apenas a imagem
         image=botao_explorar_image,
-        command=lambda: [update_active_screen(botao_explorar), ecra_series()],
-        fg_color="transparent",   # Fundo transparente para só aparecer a imagem
-        hover_color="#181818"     # Cor ao passar o rato (opcional)
+        command=lambda: [update_active_screen(botao_explorar), frame_explorar.tkraise()],
+        fg_color="transparent",  # Fundo transparente para só aparecer a imagem
+        hover_color="#181818"  # Cor ao passar o rato (opcional)
     )
     # Posicionar o botão
     botao_explorar.place(x=28, y=408)
@@ -114,11 +174,11 @@ def menu_lateral():
         app,
         width=68,
         height=89,
-        text="",               # Sem texto, apenas a imagem
+        text="",  # Sem texto, apenas a imagem
         image=botao_perfil_image,
-        command=lambda: [update_active_screen(botao_perfil), ecra_perfil()],
-        fg_color="transparent",   # Fundo transparente para só aparecer a imagem
-        hover_color="#181818"     # Cor ao passar o rato (opcional)
+        command=lambda: [update_active_screen(botao_perfil), frame_perfil.tkraise()],
+        fg_color="transparent",  # Fundo transparente para só aparecer a imagem
+        hover_color="#181818"  # Cor ao passar o rato (opcional)
     )
     # Posicionar o botão
     botao_perfil.place(x=28, y=534)
@@ -132,12 +192,37 @@ def splashscreen():
     # Adicionar o logótipo
     logo = ctk.CTkImage(Image.open('./images/logo.png'), size=(373, 142))
     label_logo = ctk.CTkLabel(app, text="", image=logo)
-    label_logo.place(relx=0.5, rely=0.5, anchor="center")  
+    label_logo.place(relx=0.5, rely=0.4, anchor="center")
+
+    # Adicionar barra de loading
+    progress_bar = ctk.CTkProgressBar(app, mode="indeterminate")
+    progress_bar.place(relx=0.5, rely=0.6, anchor="center", relwidth=0.2)
+    progress_bar.start()
 
     # Agendar a transição para a próxima função
-    app.after(1500, ecra_login)  # Transita para `iniciar_app` após 3 segundos
+    app.after(2000, ecra_login)  # Transita para `ecra_login` após 2 segundos
 
 def ecra_login():
+    """
+    Inicializa a aplicação principal e exibe a tela de login.
+    Esta função limpa a janela atual e configura a aparência do aplicativo.
+    Em seguida, adiciona os elementos da interface do usuário necessários para
+    a tela de login, incluindo rótulos, campos de entrada para e-mail e senha,
+    botões e texto clicável.
+    Elementos da interface do usuário:
+    - Imagem promocional
+    - Rótulo "Iniciar Sessão"
+    - Campo de entrada para e-mail
+    - Campo de entrada para senha com botão para alternar visibilidade
+    - Texto clicável para recuperação de senha
+    - Botão "Iniciar Sessão"
+    - Rótulos e botão para criação de nova conta
+    Funções associadas:
+    - toggle_password_visibility: Alterna a visibilidade do campo de senha.
+    - on_text_click: Função chamada ao clicar no texto de recuperação de senha.
+    - users.logIn: Função chamada ao clicar no botão "Iniciar Sessão".
+    - criar_conta: Função chamada ao clicar no botão "Criar Conta".
+    """
     """Inicializa a aplicação principal."""
     # Limpar a janela atual
     for widget in app.winfo_children():
@@ -200,14 +285,14 @@ def ecra_login():
     clickable_text.place(x=513, y=246)
     # Associe a função de clique ao texto
     clickable_text.bind("<Button-1>", lambda event: on_text_click())
-    
+
     button_iniciar_sessao = ctk.CTkButton(app,
                            text='INICIAR SESSÃO',
                            font=("Helvetica", 14.3, "bold"),
                            text_color="#000",
                            hover_color="#D59C2A",
                            fg_color="#F2C94C",
-                           command= lambda:users.logIn(entry_password.get(),entry_email.get(),ecra_series,limpar_todos_widgets),
+                           command= lambda:users.logIn(entry_password.get(),entry_email.get(),iniciar_frames,limpar_todos_widgets),
                            width=173,
                            height=36)
     button_iniciar_sessao.place(x=513, y=297)
@@ -300,40 +385,46 @@ def criar_conta():
                         command=lambda:toggle_password_visibility(entry_password))
     toggle_button.place(x=923, y=332)  # Position the button near the password field
 
-
     button_criar_conta = ctk.CTkButton(app,
                            text='CRIAR CONTA',
                            font=("Helvetica", 14.3, "bold"),
                            text_color="#fff",
                            hover_color="#3F685F",
                            fg_color="#4F8377",
-                           command=lambda:sign(entry_username.get(),entry_password.get(),entry_email.get(),ecra_login),
+                           command=lambda:users.sign(entry_username.get(),entry_password.get(),entry_email.get(),ecra_login),
                            width=173,
                            height=36)
     button_criar_conta.place(x=513, y=414)
 
+    button_cancelar = ctk.CTkButton(app,
+                           text='CANCELAR',
+                           font=("Helvetica", 14.3, "bold"),
+                           text_color="#fff",
+                           hover_color="#3F685F",
+                           fg_color="#4F8377",
+                           command=lambda:ecra_login(),
+                           width=173,
+                           height=36)
+    button_cancelar.place(x=713, y=414)
+
 def ecra_series():
     """Renderiza o ecrã principal
     """
-    # Limpar a janela atual
-    limpar_area_central()
-    
-    ctk.set_appearance_mode("dark")
 
     global scrollable_frame_para_ver, scrollable_frame_direita
-    scrollable_frame_para_ver = ctk.CTkScrollableFrame(app, width=460, height=470)
-    scrollable_frame_para_ver.place(x=160, y=150)
+    scrollable_frame_para_ver = ctk.CTkScrollableFrame(frame_series, width=460, height=470)
+    scrollable_frame_para_ver.place(x=10, y=0)
 
-    scrollable_frame_direita = ctk.CTkScrollableFrame(app, width=460, height=470)
-    scrollable_frame_direita.place(x=680, y=150)
+    scrollable_frame_direita = ctk.CTkScrollableFrame(frame_series, width=460, height=470)
+    scrollable_frame_direita.place(x=520, y=0)
 
     card_series_para_ver(
     "./images/catalog/hp1.jpg",
     "Harry Potter e a Pedra Filosofal",
-    "Um órfão descobre que é um bruxo e começa uma jornada mágica...",
-    "https://www.youtube.com/watch?v=VyHV0BRtdxo",
+    "Um órfão descobre que é um bruxo e começa uma jornada mágica...Um órfão descobre que é um bruxo e começa uma jornada mágica...Um órfão descobre que é um bruxo e começa uma jornada mágica...Um órfão descobre que é um bruxo e começa uma jornada mágica...Um órfão descobre que é um bruxo e começa uma jornada mágica...Um órfão descobre que é um bruxo e começa uma jornada mágica...Um órfão descobre que é um bruxo e começa uma jornada mágica...Um órfão descobre que é um bruxo e começa uma jornada mágica...",
+    "https://www.youtube.com/watch?v=2yJgwwDcgV8",
     "4.8",
-    "2001"
+    "2025"
     )
     card_series_para_ver(
     "./images/catalog/hp1.jpg",
@@ -376,26 +467,32 @@ def ecra_series():
     "2004"
     )
 
-
 def ecra_filmes():
     """Renderiza o ecrã principal
     """
-    # Limpar a janela atual
-    limpar_area_central()
 
     mock = ctk.CTkImage(Image.open('./images/filmes_mock.png'), size=(894, 521))
-    label_mock = ctk.CTkLabel(app, text="", image=mock)
-    label_mock.place(x=224, y=108)
+    label_mock = ctk.CTkLabel(frame_filmes, text="", image=mock)
+    label_mock.place(x=0, y=0)
 
-def ecra_perfil():
+def ecra_explorar():
+    """Renderiza o ecrã principal
+    """
+
+    global scrollable_frame_para_ver, scrollable_frame_direita
+    scrollable_frame_para_ver = ctk.CTkScrollableFrame(frame_explorar, width=460, height=470)
+    scrollable_frame_para_ver.place(x=10, y=0)
+
+    scrollable_frame_direita = ctk.CTkScrollableFrame(frame_explorar, width=460, height=470)
+    scrollable_frame_direita.place(x=520, y=0)
+
+def ecra_perfil(username):
     """Renderiza a dashboard do utilizador
     """
-    # Limpar a janela atual
-    limpar_area_central()
 
     # Circular placeholder frame
-    placeholder_frame = ctk.CTkFrame(master=app, width=100, height=100, corner_radius=110)
-    placeholder_frame.place(x=179, y=151)
+    placeholder_frame = ctk.CTkFrame(master=frame_perfil, width=100, height=100, corner_radius=110)
+    placeholder_frame.place(x=0, y=0)
 
     # Label for displaying the image
     global image_label
@@ -404,77 +501,108 @@ def ecra_perfil():
 
     # Button for uploading the image (centered in the placeholder)
     upload_button = ctk.CTkButton(
-    master=placeholder_frame,
-    text="Mudar",
-    command=upload_e_guarda_avatar,
-    font=ctk.CTkFont(size=10, weight="bold"),
-    fg_color="transparent",
-    bg_color="transparent",  # Transparent button background
-    hover_color="#242424",    # Optional hover effect
-    text_color="#FFFFFF",     # Text remains visible
-    border_width=1,           # Optional border
-    border_color="white",   # Border color matches the placeholder
-    width=10,
-    height=30
+        master=placeholder_frame,
+        text="Mudar",
+        command=lambda: upload_e_guarda_avatar(username),
+        font=ctk.CTkFont(size=10, weight="bold"),
+        fg_color="transparent",
+        bg_color="transparent",  # Transparent button background
+        hover_color="#242424",    # Optional hover effect
+        text_color="#FFFFFF",     # Text remains visible
+        border_width=1,           # Optional border
+        border_color="white",   # Border color matches the placeholder
+        width=10,
+        height=30
     )
     upload_button.place(relx=0.5, rely=0.5, anchor="center")
 
-def verifica_se_pasta_existe(username):
-    """Garante que a pasta para o utilizador ativo existe."""
+def update_avatar(username):
+    """Update the avatar widget with the user's profile picture."""
+    global avatar_label
+
+    # Verify the user image
+    user_folder = os.path.join(root_dir, "files", "users", username)
+    if not os.path.exists(user_folder):
+        image_path = './images/default_avatar.png'
+    else:
+        image_path = os.path.join(user_folder, "profile_picture.png")
+
+    # Load the avatar image
+    try:
+        image = Image.open(image_path)
+    except FileNotFoundError:
+        image = Image.open('./images/default_avatar.png')
+    avatar = ctk.CTkImage(image, size=(55, 55))
+
+    # Destroy the existing avatar label if it exists
+    if avatar_label is not None:
+        avatar_label.destroy()
+
+    # Create a new avatar label
+    avatar_label = ctk.CTkLabel(app, text="", image=avatar)
+    avatar_label.place(x=1115, y=23)
+
+def upload_e_guarda_avatar(username):
+    """Upload an image, crop it to a square, apply a circular mask, save it, and display it."""
+    global image_label
+
+    # Open file dialog to select an image
+    file_path = filedialog.askopenfilename(
+        title="Selecione uma imagem",
+        filetypes=[("Imagens", "*.png;*.jpg;*.jpeg;*.bmp;*.gif")]
+    )
+    if not file_path:
+        return
+
+    # Ensure the user folder exists
     user_folder = os.path.join(root_dir, "files", "users", username)
     if not os.path.exists(user_folder):
         os.makedirs(user_folder)
         print(f"Pasta criada para o utilizador: {user_folder}")
-    return user_folder
 
-def crop_para_quadrado(image_path):
-    """Crop the uploaded image to a square and return the cropped image."""
-    with Image.open(image_path) as img:
+    # Load and crop the image to a square
+    with Image.open(file_path) as img:
         width, height = img.size
         side_length = min(width, height)
         left = (width - side_length) // 2
         top = (height - side_length) // 2
         right = left + side_length
         bottom = top + side_length
-        return img.crop((left, top, right, bottom))
+        cropped_image = img.crop((left, top, right, bottom))
 
-def aplica_mascara_circular(image):
-    """Apply a circular mask to the image and return it."""
-    size = (200, 200)
-    image = image.resize(size, Image.LANCZOS)
+    # Apply a circular mask to the image and resize it to 500x500
+    size = (500, 500)
+    cropped_image = cropped_image.resize(size, Image.Resampling.LANCZOS)
     mask = Image.new("L", size, 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0, size[0], size[1]), fill=255)
     circular_image = Image.new("RGBA", size)
-    circular_image.paste(image, (0, 0), mask)
-    return circular_image
+    circular_image.paste(cropped_image, (0, 0), mask)
 
-def upload_e_guarda_avatar():
-    """Upload an image, save the cropped version, and render it in a circular frame."""
-    file_path = filedialog.askopenfilename(
-        title="Selecione uma imagem",
-        filetypes=[("Imagens", "*.png;*.jpg;*.jpeg;*.bmp;*.gif")]
-    )
-    if file_path:
-        user_folder = verifica_se_pasta_existe(users.user_ativo)
-        
-       
-        cropped_image = crop_para_quadrado(file_path)
-        
-      
-        save_path = os.path.join(user_folder, "profile_picture.png")
-        cropped_image.save(save_path)
-        print(f"Imagem guardada aqui: {save_path}")
-        
-        # Display the circular version of the cropped image
-        circular_image = aplica_mascara_circular(cropped_image)
-        mostra_imagem(circular_image)
+    # Save the circular image
+    save_path = os.path.join(user_folder, "profile_picture.png")
+    circular_image.save(save_path)
+    print(f"Imagem guardada aqui: {save_path}")
 
-def mostra_imagem(image):
-    """Display the circular image in the placeholder."""
-    ctk_image = ctk.CTkImage(image, size=(100, 100))
+    ctk_image = ctk.CTkImage(circular_image, size=(100, 100))
     image_label.configure(image=ctk_image, text="")
     image_label.image = ctk_image
+
+    # Update the avatar widget with the new image
+    update_avatar(username)
+
+def playWebBrowserVideo(trailer):
+    """
+    Abre o browser definido por defeito com um url
+    """
+  
+    webbrowser.open(trailer, new = 2, autoraise=True)          #the window is raised if possible
+    
+    """ 
+    If new is 0, the url is opened in the same browser window if possible. 
+    If new is 1, a new browser window is opened if possible. 
+    If new is 2, a new browser page (“tab”) is opened if possible. 
+    """
 
 def card_series_para_ver(cat_img_path, movie_name, description="", trailer="", rating="", year=""):
     """Creates a clickable card for a movie or series
@@ -489,61 +617,60 @@ def card_series_para_ver(cat_img_path, movie_name, description="", trailer="", r
     """
     try:
         # Load the image and resize
-        card_image = Image.open(cat_img_path).resize((100, 148), Image.LANCZOS)
-        
+        card_image = Image.open(cat_img_path).resize((100, 148), Image.Resampling.LANCZOS)
+
         # Create a rounded mask
         mask = Image.new("L", card_image.size, 0)
         draw = ImageDraw.Draw(mask)
         draw.rounded_rectangle([(0, 0), card_image.size], radius=6, fill=255)
-        
+
         # Apply the mask to the image
         rounded_card_image = Image.new("RGBA", card_image.size)
         rounded_card_image.paste(card_image, (0, 0), mask)
-        
+
         # Create a frame for each card
         card_frame = ctk.CTkFrame(scrollable_frame_para_ver, width=110, height=158)
         card_frame.grid_propagate(False)
-        
+
         # Create a label for the image and add it to the card frame
         card_image_ctk = ctk.CTkImage(rounded_card_image, size=(100, 148))
         card_label = ctk.CTkLabel(card_frame, image=card_image_ctk, text="")
         card_label.pack(expand=True)
-        
+
         # Define the number of columns
         columns = 4  # You can adjust this value as needed
 
         # Get the current number of cards
         num_cards = len(scrollable_frame_para_ver.winfo_children()) - 1
-        
+
         # Place the card in the grid
         row = num_cards // columns
         column = num_cards % columns
         card_frame.grid(row=row, column=column, padx=5, pady=5)
-        
+
         # Make card clickable
         def on_click(event):
             mostrar_detalhes_filme(movie_name, description, trailer, rating, year)
 
         card_frame.bind("<Button-1>", on_click)
         card_label.bind("<Button-1>", on_click)
-        
+
         # Add hover effect
         def on_enter(event):
             card_frame.configure(fg_color=("#DBDBDB", "#2B2B2B"))
-            
+
         def on_leave(event):
             card_frame.configure(fg_color=("gray86", "#242424"))
-            
+
         card_frame.bind("<Enter>", on_enter)
         card_frame.bind("<Leave>", on_leave)
-        
-        
+
     except (FileNotFoundError, IOError) as e:
         print(f"Error loading image: {e}")
 
 def mostrar_detalhes_filme(movie_name, description, trailer, rating, year):
     """Shows movie details in a new frame
-    
+
     Args:
         movie_name (str): Name of the movie
         description (str): Movie description
@@ -554,7 +681,7 @@ def mostrar_detalhes_filme(movie_name, description, trailer, rating, year):
     # Create new frame for movie details
     detalhes_frame = ctk.CTkFrame(app, width=800, height=500, corner_radius=6, fg_color="#4f8377")
     detalhes_frame.place(relx=0.5, rely=0.5, anchor="center")
-    
+
     # Add close button
     botao_fechar = ctk.CTkButton(
         detalhes_frame,
@@ -565,7 +692,7 @@ def mostrar_detalhes_filme(movie_name, description, trailer, rating, year):
         text_color="#121212"
     )
     botao_fechar.place(x=760, y=10)
-    
+
     # Add movie details
     titulo = ctk.CTkLabel(
         detalhes_frame,
@@ -574,7 +701,7 @@ def mostrar_detalhes_filme(movie_name, description, trailer, rating, year):
         text_color="#ffffff"
     )
     titulo.place(x=20, y=20)
-    
+
     desc = ctk.CTkLabel(
         detalhes_frame,
         text=description,
@@ -583,14 +710,11 @@ def mostrar_detalhes_filme(movie_name, description, trailer, rating, year):
         wraplength=700
     )
     desc.place(x=20, y=60)
-    
-    # Add YouTube trailer
-    html_label = HTMLLabel(
-        detalhes_frame,
-        html=f'<iframe width="560" height="315" src="{trailer}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
-    )
-    html_label.place(x=20, y=80)
-    
+
+    # Add trailer
+    video_label = HTMLLabel(detalhes_frame, html=f'<iframe width="700" height="400" src="{trailer}" frameborder="0" allowfullscreen></iframe>')
+    video_label.place(x=50, y=100)
+
     info = ctk.CTkLabel(
         detalhes_frame,
         text=f"Rating: {rating} | Ano: {year}",
@@ -607,8 +731,6 @@ def mostrar_detalhes_filme(movie_name, description, trailer, rating, year):
 root_dir = os.path.dirname(os.path.abspath(__file__))
 # Altera o diretório atual para o diretório do ficheiro Python
 os.chdir(root_dir)
-#Diretorio dos Ficheiros
-USERS_DIR = os.path.join(root_dir, "files", "users")
 
 #######################
 #### INÍCIO DA GUI ####
@@ -654,6 +776,7 @@ app.resizable(False, False)
 #######################
 
 splashscreen()
+
 
 # Iniciar o loop da interface gráfica
 app.mainloop()
