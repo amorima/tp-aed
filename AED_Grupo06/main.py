@@ -243,28 +243,29 @@ class HootApp(ctk.CTk):
                 if not linha:
                     continue
                 partes = linha.split(";")
-                if len(partes) < 7:
+                if len(partes) < 8:  # Verifica se há 8 campos
+                    print(f"Linha inválida no ficheiro: {linha}")
                     continue
-                titulo, genero, ano, rating, img_path, trailer, descricao = partes
-                try:
-                    ano = int(ano)
-                except:
-                    ano = 0
+                titulo, genero, data_completa, data_insercao, rating, img_path, trailer, descricao = partes
                 try:
                     rating = float(rating)
-                except:
+                except ValueError:
+                    print(f"Rating inválido para '{titulo}': {rating}")
                     rating = 0.0
                 item = {
                     "titulo": titulo,
                     "genero": genero,
-                    "ano": ano,
+                    "data_completa": data_completa,
+                    "data_insercao": data_insercao,
                     "rating": rating,
                     "img_path": img_path,
                     "trailer": trailer,
-                    "descricao": descricao
+                    "descricao": descricao,
                 }
                 lista.append(item)
         return lista
+
+
 
     def _carregar_dados_series(self):
         return self.dados_geral
@@ -375,11 +376,17 @@ class HootApp(ctk.CTk):
 
     def _atualizar_informacoes_topo(self):
         user_folder = os.path.join(root_dir, "files", "users", self.username)
-        if not os.path.exists(user_folder):
-            image_path = './images/default_avatar.png'
+        profile_picture_path = os.path.join(user_folder, "profile_picture.png")
+
+        # Verifica se o ficheiro 'profile_picture.png' realmente existe
+        if os.path.isfile(profile_picture_path):
+            image_path = profile_picture_path
         else:
-            image_path = os.path.join(user_folder, "profile_picture.png")
+            image_path = './images/default_avatar.png'
+
         image = Image.open(image_path)
+        avatar = ctk.CTkImage(image, size=(55, 55))
+        self.avatar_label = ctk.CTkLabel(self, text="", image=avatar)
         avatar = ctk.CTkImage(image, size=(55, 55))
         self.avatar_label = ctk.CTkLabel(self, text="", image=avatar)
         self.avatar_label.place(x=1100, y=23)
@@ -444,7 +451,6 @@ class HootApp(ctk.CTk):
         self._mostrar_series_filtradas()
 
     def _aplicar_filtro_series(self):
-        import datetime
         genero_selecionado = self.filtro_genero.get()
         ano_texto = self.filtro_ano.get()
         lista_filtrada = []
@@ -455,10 +461,12 @@ class HootApp(ctk.CTk):
             if ano_texto.strip():
                 try:
                     ano_int = int(ano_texto.strip())
-                    if item["ano"] != ano_int:
+                    ano_lancamento = int(item["data_completa"].split("/")[-1])  # Extrair o ano
+                    if ano_lancamento != ano_int:
                         continue
                 except ValueError:
-                    pass
+                    print(f"Ano inválido: {ano_texto}")
+                    continue
             lista_filtrada.append(item)
 
         for child in self.scroll_left_series.winfo_children():
@@ -471,10 +479,15 @@ class HootApp(ctk.CTk):
         lista_futuro = []
 
         for item in lista_filtrada:
-            if item["ano"] <= ano_hoje:
-                lista_passado.append(item)
-            else:
-                lista_futuro.append(item)
+            try:
+                ano_lancamento = int(item["data_completa"].split("/")[-1])
+                if ano_lancamento <= ano_hoje:
+                    lista_passado.append(item)
+                else:
+                    lista_futuro.append(item)
+            except ValueError:
+                print(f"Data inválida no item: {item['titulo']}")
+                continue
 
         self._criar_cards_series(lista_passado, self.scroll_left_series)
         self._criar_cards_series(lista_futuro, self.scroll_right_series)
@@ -494,10 +507,15 @@ class HootApp(ctk.CTk):
         lista_futuro = []
 
         for item in self.todas_series:
-            if item["ano"] <= ano_hoje:
-                lista_passado.append(item)
-            else:
-                lista_futuro.append(item)
+            try:
+                ano_lancamento = int(item["data_completa"].split("/")[-1])  # Extrair o ano de "data_completa"
+                if ano_lancamento <= ano_hoje:
+                    lista_passado.append(item)
+                else:
+                    lista_futuro.append(item)
+            except ValueError:
+                print(f"Data inválida no item: {item['titulo']}")
+                continue
 
         self._criar_cards_series(lista_passado, self.scroll_left_series)
         self._criar_cards_series(lista_futuro, self.scroll_right_series)
@@ -511,7 +529,7 @@ class HootApp(ctk.CTk):
                 description=item["descricao"],
                 trailer=item["trailer"],
                 rating=str(item["rating"]),
-                year=str(item["ano"])
+                year=int(item["data_completa"].split("/")[-1])
             )
 
     def _ecra_filmes(self, parent_frame):
@@ -591,6 +609,15 @@ class HootApp(ctk.CTk):
                                       command=self._ecra_dashboard_admin)
         btn_dashboard.pack(pady=5)
 
+        btn_inserir_conteudo = ctk.CTkButton(
+            parent_frame,
+            text="Inserir Filme/Série",
+            fg_color="#4F8377",
+            command=self._abrir_formulario_insercao
+        )
+        btn_inserir_conteudo.pack(pady=5)  
+
+
     def _gerir_utilizadores(self):
         print("Gerir Utilizadores: criar ecrã/modal para listar, bloquear ou remover utilizadores.")
 
@@ -599,6 +626,103 @@ class HootApp(ctk.CTk):
 
     def _ecra_dashboard_admin(self):
         print("Dashboard Admin: criar gráficos e estatísticas para administradores.")
+    
+    def _abrir_formulario_insercao(self):
+        self._clear_window()
+        form_frame = ctk.CTkFrame(self, width=800, height=600, corner_radius=6, fg_color="#4f8377")
+        form_frame.place(relx=0.5, rely=0.5, anchor="center")
+        
+        ctk.CTkLabel(form_frame, text="Adicionar Filme/Série", font=("Helvetica", 24, "bold"), text_color="#ffffff").pack(pady=10)
+
+        entries = {}
+        labels = [
+            ("Título", "titulo"), 
+            ("Data Completa (DD/MM/AAAA)", "data_completa"),
+            ("Rating (0-10)", "rating"),
+            ("URL do Trailer", "trailer"),
+            ("Descrição", "descricao")
+        ]
+
+        # Campos de texto
+        for label_text, key in labels:
+            ctk.CTkLabel(form_frame, text=label_text, font=("Helvetica", 14), text_color="#ffffff").pack(pady=5)
+            entries[key] = ctk.CTkEntry(form_frame, width=400)
+            entries[key].pack()
+
+        # Lista suspensa para género
+        ctk.CTkLabel(form_frame, text="Género", font=("Helvetica", 14), text_color="#ffffff").pack(pady=5)
+        generos_disponiveis = ["Ação", "Comédia", "Drama", "Fantasia", "Ficção Científica", "Terror", "Romance"]
+        entries["genero"] = ctk.CTkOptionMenu(form_frame, values=generos_disponiveis)
+        entries["genero"].set("Ação")
+        entries["genero"].pack()
+
+        # Upload de imagem
+        ctk.CTkLabel(form_frame, text="Carregar Imagem", font=("Helvetica", 14), text_color="#ffffff").pack(pady=5)
+        img_label = ctk.CTkLabel(form_frame, text="Nenhuma imagem carregada", text_color="#ffffff")
+        img_label.pack(pady=5)
+
+        def fazer_upload_imagem():
+            file_path = filedialog.askopenfilename(
+                title="Selecionar uma imagem",
+                filetypes=[("Imagens", "*.png;*.jpg;*.jpeg")]
+            )
+            if file_path:
+                # Salvar a imagem na pasta './files/catalog'
+                catalog_dir = os.path.join(root_dir, "files", "catalog")
+                if not os.path.exists(catalog_dir):
+                    os.makedirs(catalog_dir)
+
+                # Nome do ficheiro
+                img_filename = os.path.basename(file_path)
+                new_img_path = os.path.join(catalog_dir, img_filename)
+
+                # Copiar a imagem para a pasta 'catalog'
+                with Image.open(file_path) as img:
+                    img.save(new_img_path)
+
+                img_label.configure(text=f"Imagem carregada: {img_filename}")
+                entries["img_path"] = new_img_path
+
+        btn_upload = ctk.CTkButton(form_frame, text="Selecionar Imagem", command=fazer_upload_imagem)
+        btn_upload.pack(pady=5)
+
+        def salvar_dados():
+            titulo = entries["titulo"].get().strip()
+            genero = entries["genero"].get().strip()
+            data_completa = entries["data_completa"].get().strip()
+            rating = entries["rating"].get().strip()
+            trailer = entries["trailer"].get().strip()
+            descricao = entries["descricao"].get().strip()
+            img_path = entries.get("img_path", "").strip()
+            data_insercao = datetime.datetime.now().strftime("%d/%m/%Y")
+
+            # Validação dos campos
+            if not (titulo and genero and data_completa and rating and trailer and descricao and img_path):
+                print("Por favor, preencha todos os campos.")
+                return
+
+            try:
+                dia, mes, ano = map(int, data_completa.split("/"))
+                datetime.datetime(ano, mes, dia)  # Verifica se a data é válida
+                rating = float(rating)
+            except ValueError:
+                print("Data ou rating inválidos. Verifique os valores introduzidos.")
+                return
+
+            # Salvar no ficheiro
+            novo_registo = f"{titulo};{genero};{data_completa};{data_insercao};{rating};{img_path};{trailer};{descricao}\n"
+            caminho_ficheiro = os.path.join(root_dir, "files", "data.txt")
+
+            with open(caminho_ficheiro, "a", encoding="utf-8") as f:
+                f.write(novo_registo)
+
+            print("Filme/Série inserido com sucesso!")
+            self._ecra_admin(form_frame)
+
+        # Botões de ação
+        ctk.CTkButton(form_frame, text="Guardar", fg_color="#4F8377", command=salvar_dados).pack(pady=20)
+        ctk.CTkButton(form_frame, text="Cancelar", fg_color="#D9534F", command=lambda: self._ecra_admin(form_frame)).pack()
+
 
     def _clear_window(self):
         for widget in self.winfo_children():

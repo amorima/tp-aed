@@ -19,4 +19,7 @@ AAAAA;dsdfas1A@;AAAA@AAAA;User
 AAAAAAA;A1Asassaasss!;aaa@;User
 AMORIMA;1;1;User
 AAAAAA;AAAaaa111!!!;antonio@antonio.pt;Admin
-AAAA;AAA111!!!;AAAA@;User
+
+ANTONIO;1;1;User;2025-01-20 13:59:31
+ANTONIO ADMIN;2;2;Admin;2025-01-20 13:48:59
+AAASSA;sdasd12123!!!A;asd@;User;2025-01-20 12:57:21

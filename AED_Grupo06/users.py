@@ -1,4 +1,5 @@
 import os
+import datetime
 import CTkMessagebox
 
 user_db = ".\\files\\users.txt"
@@ -9,7 +10,7 @@ user_ativo = None
 # ------------------------------------------
 def lerFicheiro(ficheiro):
     lista = []
-    if os.path.exists(ficheiro):  # Ficheiro existe
+    if os.path.exists(ficheiro):
         with open(ficheiro, "r", encoding="utf-8") as file:
             lista = file.readlines()
     return lista
@@ -66,17 +67,18 @@ def emailChecker(email):
 # ------------------------------------------
 def get_user_data_by_email(email):
     """
-    Retorna uma tupla (username, password, email, role)
+    Retorna uma tupla (username, password, email, role, data)
     ou None se não existir um utilizador com esse email.
     """
     userList = lerFicheiro(user_db)
     for line in userList:
         campos = line.strip().split(";")
-        if len(campos) < 4:
+        if len(campos) < 5:
+            # Linha inválida ou com formatação antiga
             continue
-        # campos = [username, password, email, role]
+        # campos = [username, password, email, role, data]
         if campos[2] == email:
-            return campos[0], campos[1], campos[2], campos[3].strip()
+            return campos[0], campos[1], campos[2], campos[3], campos[4]
     return None
 
 # ------------------------------------------
@@ -96,33 +98,63 @@ def is_admin(username):
     return False
 
 # ------------------------------------------
+# Update Login Date
+# ------------------------------------------
+
+def update_login_date(email):
+    """
+    Atualiza a data de registo (5º campo) para a data/hora atual,
+    localizando o user pelo email.
+    """
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    userList = lerFicheiro(user_db)
+    updated_user_db = []
+
+    for line in userList:
+        campos = line.strip().split(";")
+        if len(campos) < 5:
+            # Mantém linhas mal-formadas (ou antigas), ou podes ignorar/descartar
+            updated_user_db.append(line)
+            continue
+
+        # Se for o user que queremos (mesmo email), altera o 5º campo
+        if campos[2] == email:
+            campos[4] = current_date
+            updated_line = ";".join(campos) + "\n"
+            updated_user_db.append(updated_line)
+        else:
+            # Caso não seja o user que procuramos, mantém a linha original
+            if not line.endswith("\n"):
+                line += "\n"
+            updated_user_db.append(line)
+
+    # Reescreve o ficheiro
+    with open(user_db, "w", encoding="utf-8") as f:
+        for line in updated_user_db:
+            f.write(line)
+
+# ------------------------------------------
 # Log In
 # ------------------------------------------
 def logIn(password, mail, fn_after_login, fn_close_login):
-    """
-    Verifica se o user existe e se a password está correta.
-    Se sim, atualiza user_ativo e chama as funções de callback.
-    Formato no ficheiro:
-        Username;Password;Email;Admin/User
-    """
     global user_ativo, username
     user_ativo = None
 
     user_data = get_user_data_by_email(mail)
     if user_data is not None:
-        # user_data -> (username, db_password, db_email, role)
-        username, db_password, db_email, role = user_data
+        # user_data -> (username, db_password, db_email, role, db_date)
+        username, db_password, db_email, role, db_date = user_data
         if password == db_password:
             # Credenciais corretas
             user_ativo = username
 
+            # Atualiza a data para a data/hora atual
+            update_login_date(mail)
+
             # Chamamos as funções callback
-            # fn_close_login -> por ex.: destruir a tela de login
-            # fn_after_login -> por ex.: abrir a janela principal
             fn_close_login()
             fn_after_login(username)
         else:
-            # Password incorreta
             CTkMessagebox.CTkMessagebox(
                 title="LogIn",
                 message="Password Incorreta",
@@ -130,7 +162,6 @@ def logIn(password, mail, fn_after_login, fn_close_login):
                 option_1="Ok"
             )
     else:
-        # Não existe um user com este email
         CTkMessagebox.CTkMessagebox(
             title="LogIn",
             message="User não existe.\nPor favor crie conta.",
@@ -144,8 +175,8 @@ def logIn(password, mail, fn_after_login, fn_close_login):
 def sign(user, password, mail, fn_after_sign):
     """
     Cria um novo utilizador no ficheiro user_db.
-    Formato:
-        Username;Password;Email;User (por default)
+    Formato (agora com 5 campos):
+        Username;Password;Email;Role;Data
     """
     # 1) Valida password
     validPassword = passwordChecker(password)
@@ -169,7 +200,7 @@ def sign(user, password, mail, fn_after_sign):
         )
         return
 
-    # 3) Valida username (sem ponto e vírgula e >= 4 chars)
+    # 3) Valida username
     if len(user) < 4:
         CTkMessagebox.CTkMessagebox(
             title="Sign in",
@@ -178,7 +209,6 @@ def sign(user, password, mail, fn_after_sign):
             option_1="Ok"
         )
         return
-
     if ";" in user:
         CTkMessagebox.CTkMessagebox(
             title="Sign in",
@@ -190,8 +220,6 @@ def sign(user, password, mail, fn_after_sign):
 
     # 4) Verifica se user ou email já existem
     userList = lerFicheiro(user_db)
-
-    # Verificar username duplicado
     for line in userList:
         campos = line.strip().split(";")
         if len(campos) < 4:
@@ -204,12 +232,6 @@ def sign(user, password, mail, fn_after_sign):
                 option_1="Ok"
             )
             return
-
-    # Verificar email duplicado
-    for line in userList:
-        campos = line.strip().split(";")
-        if len(campos) < 4:
-            continue
         if campos[2] == mail:
             CTkMessagebox.CTkMessagebox(
                 title="Sign in",
@@ -219,11 +241,12 @@ def sign(user, password, mail, fn_after_sign):
             )
             return
 
-    # 5) Se chegou aqui, pode criar o user
+    # 5) Adiciona linha no ficheiro com 5º campo (data do registo)
+    data_registo = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(user_db, "a", encoding="utf-8") as f:
-        f.write(f"{user};{password};{mail};User\n")
+        f.write(f"{user};{password};{mail};User;{data_registo}\n")
 
-    # 6) Callback pós-criação (ex.: voltar ao login ou entrar na app)
+    # 6) Callback pós-criação
     fn_after_sign()
 
 # ------------------------------------------
@@ -411,7 +434,7 @@ def addRating(user, item, rating):
     """
     Adiciona rating a 'item'.
     Ex.: rating entre 0 e 5 (string ou int).
-    Ficheiro: .\files\catalog_data\{item}\reviews.txt
+    Ficheiro: .\\files\\catalog_data\\{item}\\reviews.txt
     Formato: "user;rating"
     """
     if not os.path.isdir(f".\\files\\catalog_data\\{item}"):
