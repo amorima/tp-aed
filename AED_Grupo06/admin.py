@@ -208,22 +208,26 @@ def removeSubCat(mainCategory,subCategory):
 
 def blockUsers(user,time):
     """
-    Arg-username|str, time
-        Time-days
-    Returns-Gives the given username a temporary tag which blocks the login for that given time
+    Blocks a user for a specified number of days.
+    
+    Args:
+        user (str): The username to block.
+        time (int): The duration of the block in days.
+    
+    Returns:
+        None: Updates the ban list file with the block information.
     """
-    instant = datetime.datetime.now()
-    instant = datetime.date.strftime(instant,"%d/%m/%y")
+    instant = datetime.now().date()
 
-    add_time=datetime.timedelta(days=time)
-    end_time = instant + add_time
+    end_time = instant + datetime.timedelta(days=time)
+    end_time_str = end_time.strftime("%d/%m/%y")
 
-    new_list=lerFicheiro(ban_list)
-    new_list.append(user+";"+end_time+"\n")
-    file= open(ban_list,"w",encoding="utf-8")
-    for line in new_list:
-        file.write(line)
-    file.close()
+    new_list = lerFicheiro(ban_list)
+
+    new_list.append(f"{user};{end_time_str}\n")
+
+    with open(ban_list, "w", encoding="utf-8") as file:
+        file.writelines(new_list)
 
 def isBlocked(user):
     """
