@@ -229,7 +229,16 @@ def isBlocked(user):
     """
     Checks is the user is blocked and for how long
     """
-    
+    blocked_list = lerFicheiro(ban_list)
+    for line in blocked_list:
+        campos = line.split(";")
+        if campos[0]==user:
+            instant = datetime.datetime.now()
+            instant = datetime.date.strftime(instant,"%d/%m/%y")
+            #Campos 1 talvez dê erro
+            if instant > campos[1]:
+                return True
+    return False
 
 def sendNotification(mensage):
     """
