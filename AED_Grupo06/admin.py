@@ -227,17 +227,29 @@ def blockUsers(user,time):
 
 def isBlocked(user):
     """
-    Checks is the user is blocked and for how long
+    Checks if the user is blocked and for how long.
+    
+    Reads a ban list from a file and checks if the given user is currently blocked.
+    The ban list should have entries in the format: "username;dd/mm/yy".
+    
+    Args:
+        user (str): The username to check.
+
+    Returns:
+        - False: If the user is not blocked or the block has expired.
+        - str: A message with the remaining block duration if the user is still blocked.
     """
     blocked_list = lerFicheiro(ban_list)
     for line in blocked_list:
         campos = line.split(";")
-        if campos[0]==user:
-            instant = datetime.datetime.now()
-            instant = datetime.date.strftime(instant,"%d/%m/%y")
-            #Campos 1 talvez dê erro
-            if instant > campos[1]:
-                return True
+        if campos[0] == user:
+            instant = datetime.now().date()
+            expiry_date = datetime.strptime(campos[1], "%d/%m/%y").date()
+            if instant <= expiry_date:
+                remaining_days = (expiry_date - instant).days
+                return f"Blocked for {remaining_days} more days."
+            else:
+                return False
     return False
 
 def sendNotification(mensage):
