@@ -8,6 +8,7 @@ import datetime
 user_db=".\\files\\user.txt"
 category_db=".\\files\\categories.txt"
 catalog_db=".\\files\\catalog.txt"
+ban_list=".\\files\\ban_list.txt"
 
 #Funções
 #-----------------------------------------------------
@@ -217,22 +218,18 @@ def blockUsers(user,time):
     add_time=datetime.timedelta(days=time)
     end_time = instant + add_time
 
-    new_list=lerFicheiro(".//files//ban_list.txt")
+    new_list=lerFicheiro(ban_list)
     new_list.append(user+";"+end_time+"\n")
-    file= open(".//files//ban_list.txt","w",encoding="utf-8")
+    file= open(ban_list,"w",encoding="utf-8")
     for line in new_list:
-        file.write()
+        file.write(line)
     file.close()
 
 def isBlocked(user):
     """
     Checks is the user is blocked and for how long
     """
-    userList=lerFicheiro(user_db)
-    for line in userList:
-        campos = line.split(";")
-        if campos[0] == user:
-            continue
+    
 
 def sendNotification(mensage):
     """
