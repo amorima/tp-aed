@@ -206,7 +206,7 @@ def removeSubCat(mainCategory,subCategory):
         file.write(line)
     file.close()
 
-def blockUsers(user,time):
+def blockUsers(user):
     """
     Blocks a user for a specified number of days.
     
@@ -217,6 +217,7 @@ def blockUsers(user,time):
     Returns:
         None: Updates the ban list file with the block information.
     """
+    time=15
     instant = datetime.now().date()
 
     end_time = instant + datetime.timedelta(days=time)
