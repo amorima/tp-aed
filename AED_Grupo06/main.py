@@ -8,6 +8,7 @@ import webbrowser
 import users
 import CTkMessagebox  # Para exibir mensagens de erro/sucesso
 from tkinter import ttk  # Para usar Treeview
+from tkcalendar import Calendar # Para o selecionador de datas
 
 
 # ---------- Variáveis Globais ---------- #
@@ -315,8 +316,8 @@ def criar_conta():
 
 def carregar_dados():
     """
-    Lê o ficheiro 'data.txt', assumindo 10 campos por linha.
-    Formato: titulo; genero; data_completa; data_insercao; rating; img_path; trailer; descricao; tipo; duracao
+    Lê o ficheiro 'data.txt' no formato:
+    Título;Data de Lançamento;Data Atual;Rating IMDB;URL do Trailer;Sinopse;Duração;Género;Tipo;Caminho da Imagem
     """
     caminho_ficheiro = os.path.join(root_dir, "files", "data.txt")
     lista = []
@@ -332,8 +333,11 @@ def carregar_dados():
             if len(partes) < 10:
                 print(f"Linha inválida no ficheiro: {linha}")
                 continue
-            (titulo, genero, data_completa, data_insercao, rating,
-             img_path, trailer, descricao, tipo, duracao) = partes
+
+            # Descompactando conforme a nova ordem
+            (titulo, data_lancamento, data_atual, rating,
+             trailer, sinopse, duracao, genero, tipo, img_path) = partes
+
             try:
                 rating = float(rating)
             except ValueError:
@@ -342,15 +346,15 @@ def carregar_dados():
 
             item = {
                 "titulo": titulo,
-                "genero": genero,
-                "data_completa": data_completa,
-                "data_insercao": data_insercao,
+                "data_lancamento": data_lancamento,
+                "data_atual": data_atual,
                 "rating": rating,
-                "img_path": img_path,
                 "trailer": trailer,
-                "descricao": descricao,
+                "sinopse": sinopse,
+                "duracao": duracao,
+                "genero": genero,
                 "tipo": tipo.lower(),   # "serie" ou "filme"
-                "duracao": duracao
+                "img_path": img_path
             }
             lista.append(item)
     return lista
@@ -505,9 +509,11 @@ def atualizar_informacoes_topo():
         app,
         text=username,
         font=ctk.CTkFont(family="Helvetica", size=16, weight="bold"),
-        text_color="#a3d9c8"
+        anchor="e",
+        text_color="#a3d9c8",
+        width=200
     )
-    label_username_top.place(x=1000, y=38)
+    label_username_top.place(x=1075 - 200, y=38)  # x = posição final - largura do label
 
 
 def ecra_series(parent_frame):
@@ -575,7 +581,7 @@ def aplicar_filtro_series(genero_selecionado, ano_texto):
         if ano_texto.strip():
             try:
                 ano_int = int(ano_texto.strip())
-                ano_lancamento = int(item["data_completa"].split("/")[-1])
+                ano_lancamento = int(item["data_lancamento"].split("/")[-1])
                 if ano_lancamento != ano_int:
                     continue
             except ValueError:
@@ -594,7 +600,7 @@ def aplicar_filtro_series(genero_selecionado, ano_texto):
 
     for item in lista_filtrada:
         try:
-            ano_lancamento = int(item["data_completa"].split("/")[-1])
+            ano_lancamento = int(item["data_lancamento"].split("/")[-1])
             if ano_lancamento <= ano_hoje:
                 lista_passado.append(item)
             else:
@@ -621,7 +627,7 @@ def mostrar_series_filtradas():
 
     for item in dados_series:
         try:
-            ano_lancamento = int(item["data_completa"].split("/")[-1])
+            ano_lancamento = int(item["data_lancamento"].split("/")[-1])
             if ano_lancamento <= ano_hoje:
                 lista_passado.append(item)
             else:
@@ -696,7 +702,7 @@ def aplicar_filtro_filmes(genero_selecionado, ano_texto):
         if ano_texto.strip():
             try:
                 ano_int = int(ano_texto.strip())
-                ano_lancamento = int(item["data_completa"].split("/")[-1])
+                ano_lancamento = int(item["data_lancamento"].split("/")[-1])
                 if ano_lancamento != ano_int:
                     continue
             except ValueError:
@@ -715,7 +721,7 @@ def aplicar_filtro_filmes(genero_selecionado, ano_texto):
 
     for item in lista_filtrada:
         try:
-            ano_lancamento = int(item["data_completa"].split("/")[-1])
+            ano_lancamento = int(item["data_lancamento"].split("/")[-1])
             if ano_lancamento <= ano_hoje:
                 lista_passado.append(item)
             else:
@@ -742,7 +748,7 @@ def mostrar_filmes_filtradas():
 
     for item in dados_filmes:
         try:
-            ano_lancamento = int(item["data_completa"].split("/")[-1])
+            ano_lancamento = int(item["data_lancamento"].split("/")[-1])
             if ano_lancamento <= ano_hoje:
                 lista_passado.append(item)
             else:
@@ -764,15 +770,15 @@ def ecra_explorar(parent_frame):
 
 
 def ecra_perfil(parent_frame):
-    scrollable_content = ctk.CTkScrollableFrame(
+    scrollable_content_perfil = ctk.CTkScrollableFrame(
         parent_frame,
         width=1050,
         height=540,
         fg_color="#242424"
     )
-    scrollable_content.place(x=-1, y=-1)
+    scrollable_content_perfil.place(x=-1, y=-1)
 
-    top_area = ctk.CTkFrame(scrollable_content, fg_color="#242424")
+    top_area = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     top_area.pack(fill="x", padx=20, pady=15)
 
     avatar_holder = ctk.CTkFrame(top_area, width=100, height=100, corner_radius=50, fg_color="#242424")
@@ -829,7 +835,7 @@ def ecra_perfil(parent_frame):
     )
     edit_button.pack(anchor="w", pady=(10, 0))
 
-    counters_frame = ctk.CTkFrame(scrollable_content, fg_color="#242424")
+    counters_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     counters_frame.pack(fill="x", padx=20)
 
     counters_data = [
@@ -850,14 +856,14 @@ def ecra_perfil(parent_frame):
         texto.pack()
 
     stats_label = ctk.CTkLabel(
-        scrollable_content,
+        scrollable_content_perfil,
         text="Estatísticas",
         font=("Helvetica", 20, "bold"),
         text_color="#84C7B9"
     )
     stats_label.pack(anchor="w", padx=20, pady=(20, 5))
 
-    stats_frame = ctk.CTkFrame(scrollable_content, fg_color="#242424")
+    stats_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     stats_frame.pack(fill="x", padx=20)
 
     stats_data = [
@@ -877,7 +883,7 @@ def ecra_perfil(parent_frame):
         texto.pack()
 
     lists_label = ctk.CTkLabel(
-        scrollable_content,
+        scrollable_content_perfil,
         text="Listas",
         font=("Helvetica", 18, "bold"),
         text_color="#84C7B9"
@@ -885,7 +891,7 @@ def ecra_perfil(parent_frame):
     lists_label.pack(anchor="w", padx=20, pady=(20, 5))
 
     # Frame onde será mostrada a Treeview com as listas do utilizador
-    lists_container = ctk.CTkFrame(scrollable_content, fg_color="#1A1A1A", width=750, height=150, corner_radius=6)
+    lists_container = ctk.CTkFrame(scrollable_content_perfil, fg_color="#1A1A1A", width=750, height=150, corner_radius=6)
     lists_container.pack(anchor="w", padx=20, pady=5)
 
     # Cria a Treeview dentro do lists_container
@@ -893,7 +899,7 @@ def ecra_perfil(parent_frame):
 
     # Botão para criar uma nova lista
     create_list_button = ctk.CTkButton(
-        scrollable_content,
+        scrollable_content_perfil,
         text="+\nCRIAR NOVA LISTA",
         font=("Helvetica", 14, "bold"),
         fg_color="#4F8377",
@@ -902,17 +908,18 @@ def ecra_perfil(parent_frame):
         height=150,
         command=lambda: criar_lista_modal()
     )
+    # Ajuste de posição conforme seu layout (exemplo):
     create_list_button.place(x=793, y=lists_container.winfo_y() + 419)
 
     series_label = ctk.CTkLabel(
-        scrollable_content,
+        scrollable_content_perfil,
         text="Séries",
         font=("Helvetica", 18, "bold"),
         text_color="#84C7B9"
     )
     series_label.pack(anchor="w", padx=20, pady=(20, 5))
 
-    series_frame = ctk.CTkFrame(scrollable_content, fg_color="#242424")
+    series_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     series_frame.pack(anchor="w", padx=20)
 
     series_posters = [
@@ -935,14 +942,14 @@ def ecra_perfil(parent_frame):
         lbl_poster.pack(side="left", padx=5)
 
     fav_series_label = ctk.CTkLabel(
-        scrollable_content,
+        scrollable_content_perfil,
         text="Séries Favoritas",
         font=("Helvetica", 18, "bold"),
         text_color="#84C7B9"
     )
     fav_series_label.pack(anchor="w", padx=20, pady=(20, 5))
 
-    fav_series_frame = ctk.CTkFrame(scrollable_content, fg_color="#242424")
+    fav_series_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     fav_series_frame.pack(anchor="w", padx=20)
 
     fav_series_posters = [
@@ -962,14 +969,14 @@ def ecra_perfil(parent_frame):
         lbl_poster.pack(side="left", padx=5)
 
     movies_label = ctk.CTkLabel(
-        scrollable_content,
+        scrollable_content_perfil,
         text="Filmes",
         font=("Helvetica", 18, "bold"),
         text_color="#84C7B9"
     )
     movies_label.pack(anchor="w", padx=20, pady=(20, 5))
 
-    movies_frame = ctk.CTkFrame(scrollable_content, fg_color="#242424")
+    movies_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     movies_frame.pack(anchor="w", padx=20)
 
     movies_posters = [
@@ -992,14 +999,14 @@ def ecra_perfil(parent_frame):
         lbl_poster.pack(side="left", padx=5)
 
     fav_movies_label = ctk.CTkLabel(
-        scrollable_content,
+        scrollable_content_perfil,
         text="Filmes Favoritos",
         font=("Helvetica", 18, "bold"),
         text_color="#84C7B9"
     )
     fav_movies_label.pack(anchor="w", padx=20, pady=(20, 5))
 
-    fav_movies_frame = ctk.CTkFrame(scrollable_content, fg_color="#242424")
+    fav_movies_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     fav_movies_frame.pack(anchor="w", padx=20)
 
     fav_movies_posters = [
@@ -1019,14 +1026,22 @@ def ecra_perfil(parent_frame):
 
 
 def ecra_admin(parent_frame):
-    label = ctk.CTkLabel(parent_frame,
+    scrollable_content_admin = ctk.CTkScrollableFrame(
+        parent_frame,
+        width=1050,
+        height=540,
+        fg_color="#242424"
+    )
+    scrollable_content_admin.place(x=-1, y=-1)
+
+    label = ctk.CTkLabel(scrollable_content_admin,
                          text="Área de Admin",
                          font=("Helvetica", 24, "bold"),
                          text_color="#4F8377")
     label.pack(pady=10)
 
     btn_users = ctk.CTkButton(
-        parent_frame,
+        scrollable_content_admin,
         text="Gerir Utilizadores",
         fg_color="#4F8377",
         command=gerir_utilizadores
@@ -1034,7 +1049,7 @@ def ecra_admin(parent_frame):
     btn_users.pack(pady=5)
 
     btn_categorias = ctk.CTkButton(
-        parent_frame,
+        scrollable_content_admin,
         text="Gerir Categorias",
         fg_color="#4F8377",
         command=gerir_categorias
@@ -1042,7 +1057,7 @@ def ecra_admin(parent_frame):
     btn_categorias.pack(pady=5)
 
     btn_dashboard = ctk.CTkButton(
-        parent_frame,
+        scrollable_content_admin,
         text="Dashboard Admin",
         fg_color="#4F8377",
         command=ecra_dashboard_admin
@@ -1050,7 +1065,7 @@ def ecra_admin(parent_frame):
     btn_dashboard.pack(pady=5)
 
     btn_inserir_conteudo = ctk.CTkButton(
-        parent_frame,
+        scrollable_content_admin,
         text="Inserir Filme/Série",
         fg_color="#4F8377",
         command=ecra_inserir
@@ -1071,60 +1086,112 @@ def ecra_dashboard_admin():
 
 
 def ecra_inserir():
-    global frames, dados_geral
+    """Cria um modal (CTkToplevel) para adicionar um filme/série."""
+    global dados_geral
 
-    if "inserir" in frames:
-        frames["inserir"].tkraise()
-        return
+    # Criação do modal
+    modal = ctk.CTkToplevel(app)
+    modal.title("Adicionar Filme/Série")
 
-    form_frame = ctk.CTkFrame(app, width=1050, height=540, corner_radius=6, fg_color="#4f8377")
-    form_frame.place(relx=1.0, rely=1.0, anchor="se")
-    frames["inserir"] = form_frame
+    # Centrar o modal na janela principal
+    modal_width = 500
+    modal_height = 600
+    x_app = app.winfo_x()
+    y_app = app.winfo_y()
+    new_x = x_app + (app_width // 2) - (modal_width // 2)
+    new_y = y_app + (app_height // 2) - (modal_height // 2)
+    modal.geometry(f"{modal_width}x{modal_height}+{new_x}+{new_y}")
+    modal.resizable(False, False)
+    modal.attributes("-topmost", True)
+    modal.iconbitmap(bitmap=".//images//hoot.ico")
 
+    # Frame principal scrollable
+    scrollable_frame = ctk.CTkScrollableFrame(modal, width=modal_width, corner_radius=6, fg_color="#242424")
+    scrollable_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+    # Título do modal
     ctk.CTkLabel(
-        form_frame,
+        scrollable_frame,
         text="Adicionar Filme/Série",
         font=("Helvetica", 24, "bold"),
         text_color="#ffffff"
-    ).pack(pady=10)
+    ).pack(pady=(0, 20))  # Espaço maior abaixo do título principal
 
+    # Campos de entrada
     entries = {}
-    labels = [
-        ("Título", "titulo"),
-        ("Data Completa (DD/MM/AAAA)", "data_completa"),
-        ("Rating (0-10)", "rating"),
-        ("URL do Trailer", "trailer"),
-        ("Descrição", "descricao")
-    ]
 
-    for label_text, key in labels:
-        ctk.CTkLabel(form_frame, text=label_text, font=("Helvetica", 14), text_color="#ffffff").pack(pady=5)
-        entries[key] = ctk.CTkEntry(form_frame, width=400)
-        entries[key].pack()
+    # Título
+    ctk.CTkLabel(scrollable_frame, text="Título", font=("Helvetica", 14, "bold"), text_color="#ffffff").pack(pady=(0, 5))
+    entries["titulo"] = ctk.CTkEntry(scrollable_frame, width=400)
+    entries["titulo"].pack(pady=(0, 20))
 
-    ctk.CTkLabel(form_frame, text="Género", font=("Helvetica", 14), text_color="#ffffff").pack(pady=5)
+    # Data de Lançamento
+    ctk.CTkLabel(scrollable_frame, text="Data de Lançamento", font=("Helvetica", 14, "bold"), text_color="#ffffff").pack(pady=(0, 5))
+    date_button = ctk.CTkButton(scrollable_frame, text="Selecionar Data")
+    date_button.pack(pady=(0, 5))
+    entries["data_lancamento"] = ctk.CTkLabel(scrollable_frame, text="Sem data selecionada", text_color="#ffffff")
+    entries["data_lancamento"].pack(pady=(0, 20))
+
+    def escolher_data():
+        """Abre um date picker e atualiza o label com a data selecionada."""
+        from tkcalendar import Calendar
+
+        date_picker = tk.Toplevel(app)
+        date_picker.title("Escolher Data")
+
+        def selecionar_data():
+            selected_date = cal.get_date()
+            entries["data_lancamento"].configure(text=selected_date)
+            date_picker.destroy()
+
+        cal = Calendar(date_picker, selectmode="day", date_pattern="dd/MM/yyyy")
+        cal.pack(pady=20)
+
+        tk.Button(date_picker, text="Confirmar", command=selecionar_data).pack(pady=10)
+
+    date_button.configure(command=escolher_data)
+
+    # Rating IMDB
+    ctk.CTkLabel(scrollable_frame, text="Rating IMDB (0-10)", font=("Helvetica", 14, "bold"), text_color="#ffffff").pack(pady=(0, 5))
+    entries["rating"] = ctk.CTkEntry(scrollable_frame, width=400)
+    entries["rating"].pack(pady=(0, 20))
+
+    # URL do Trailer
+    ctk.CTkLabel(scrollable_frame, text="URL do Trailer", font=("Helvetica", 14, "bold"), text_color="#ffffff").pack(pady=(0, 5))
+    entries["trailer"] = ctk.CTkEntry(scrollable_frame, width=400)
+    entries["trailer"].pack(pady=(0, 20))
+
+    # Sinopse
+    ctk.CTkLabel(scrollable_frame, text="Sinopse", font=("Helvetica", 14, "bold"), text_color="#ffffff").pack(pady=(0, 5))
+    entries["sinopse"] = ctk.CTkEntry(scrollable_frame, width=400)
+    entries["sinopse"].pack(pady=(0, 20))
+
+    # Duração
+    ctk.CTkLabel(scrollable_frame, text="Duração (minutos)", font=("Helvetica", 14, "bold"), text_color="#ffffff").pack(pady=(0, 5))
+    entries["duracao"] = ctk.CTkEntry(scrollable_frame, width=400)
+    entries["duracao"].pack(pady=(0, 20))
+
+    # Género
+    ctk.CTkLabel(scrollable_frame, text="Género", font=("Helvetica", 14, "bold"), text_color="#ffffff").pack(pady=(0, 5))
     generos_disponiveis = ["Ação", "Comédia", "Drama", "Fantasia", "Ficção Científica", "Terror", "Romance", "Aventura"]
-    entries["genero"] = ctk.CTkOptionMenu(form_frame, values=generos_disponiveis)
+    entries["genero"] = ctk.CTkOptionMenu(scrollable_frame, values=generos_disponiveis)
     entries["genero"].set("Ação")
-    entries["genero"].pack()
+    entries["genero"].pack(pady=(0, 20))
 
-    entries["check_var"] = tk.BooleanVar(value=True)  # por omissão é Série
-    checkbox_serie = ctk.CTkCheckBox(
-        form_frame,
-        text="Marcar se for Série (desmarcar para Filme)",
-        variable=entries["check_var"],
-        onvalue=True,
-        offvalue=False
-    )
-    checkbox_serie.pack(pady=10)
+    # Tipo de Conteúdo (Radio Buttons)
+    ctk.CTkLabel(scrollable_frame, text="Tipo de Conteúdo", font=("Helvetica", 14, "bold"), text_color="#ffffff").pack(pady=(0, 5))
+    tipo_var = tk.StringVar(value="serie")
+    tipo_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
+    tipo_frame.pack(pady=(0, 20))
+    radio_serie = ctk.CTkRadioButton(tipo_frame, text="Série", variable=tipo_var, value="serie")
+    radio_filme = ctk.CTkRadioButton(tipo_frame, text="Filme", variable=tipo_var, value="filme")
+    radio_serie.pack(side="left", padx=10)
+    radio_filme.pack(side="left", padx=10)
 
-    ctk.CTkLabel(form_frame, text="Duração (minutos)", font=("Helvetica", 14), text_color="#ffffff").pack(pady=5)
-    entries["duracao"] = ctk.CTkEntry(form_frame, width=400)
-    entries["duracao"].pack()
-
-    ctk.CTkLabel(form_frame, text="Carregar Imagem", font=("Helvetica", 14), text_color="#ffffff").pack(pady=5)
-    img_label = ctk.CTkLabel(form_frame, text="Nenhuma imagem carregada", text_color="#ffffff")
-    img_label.pack(pady=5)
+    # Upload de Imagem
+    ctk.CTkLabel(scrollable_frame, text="Carregar Imagem", font=("Helvetica", 14, "bold"), text_color="#ffffff").pack(pady=(0, 5))
+    img_label = ctk.CTkLabel(scrollable_frame, text="Nenhuma imagem carregada", text_color="#ffffff")
+    img_label.pack(pady=(0, 10))
 
     def fazer_upload_imagem():
         file_path = filedialog.askopenfilename(
@@ -1132,7 +1199,7 @@ def ecra_inserir():
             filetypes=[("Imagens", "*.png;*.jpg;*.jpeg")]
         )
         if file_path:
-            catalog_dir = os.path.join(root_dir, "files", "catalog")
+            catalog_dir = os.path.join(root_dir, "images", "catalog")
             if not os.path.exists(catalog_dir):
                 os.makedirs(catalog_dir)
 
@@ -1143,55 +1210,72 @@ def ecra_inserir():
                 img.save(new_img_path)
 
             img_label.configure(text=f"Imagem carregada: {img_filename}")
-            entries["img_path"] = new_img_path
+            entries["img_path"] = f".//images//catalog//{img_filename}"
 
-    btn_upload = ctk.CTkButton(form_frame, text="Selecionar Imagem", command=fazer_upload_imagem)
-    btn_upload.pack(pady=5)
+    btn_upload = ctk.CTkButton(scrollable_frame, text="Selecionar Imagem", command=fazer_upload_imagem)
+    btn_upload.pack(pady=(0, 20))
 
+    # Botões para salvar ou cancelar
     def salvar_dados():
-        """Salva o novo registo no ficheiro data.txt (10 campos)."""
+        """
+        Salva os dados no ficheiro data.txt no formato:
+        Título;Data de Lançamento;Data Atual;Rating IMDB;URL do Trailer;Sinopse;Duração;Género;Tipo;Caminho da Imagem
+        """
         titulo = entries["titulo"].get().strip()
-        genero = entries["genero"].get().strip()
-        data_completa = entries["data_completa"].get().strip()
+        data_lancamento = entries["data_lancamento"].cget("text").strip()
         rating = entries["rating"].get().strip()
         trailer = entries["trailer"].get().strip()
-        descricao = entries["descricao"].get().strip()
-        img_path = entries.get("img_path", "").strip()
+        sinopse = entries["sinopse"].get().strip()
         duracao = entries["duracao"].get().strip()
+        genero = entries["genero"].get().strip()
+        tipo = tipo_var.get()
+        img_path = entries.get("img_path", "")
 
-        tipo = "serie" if entries["check_var"].get() else "filme"
-        data_insercao = datetime.datetime.now().strftime("%d/%m/%Y")
-
-        if not (titulo and genero and data_completa and rating and trailer and descricao and img_path and duracao):
+        if not (titulo and data_lancamento and rating and trailer and sinopse and duracao and genero and img_path):
             print("Por favor, preencha todos os campos.")
             return
 
         try:
-            dia, mes, ano = map(int, data_completa.split("/"))
-            datetime.datetime(ano, mes, dia)  # valida data
-            rating_float = float(rating)
+            rating = float(rating)
         except ValueError:
-            print("Data ou rating inválidos. Verifique os valores introduzidos.")
+            print("Rating inválido. Deve ser um número entre 0 e 10.")
             return
 
-        novo_registo = f"{titulo};{genero};{data_completa};{data_insercao};{rating_float};{img_path};{trailer};{descricao};{tipo};{duracao}\n"
+        # Data atual
+        data_atual = datetime.datetime.now().strftime("%d/%m/%Y")
+
+        # Formato do registo
+        novo_registo = (f"{titulo};{data_lancamento};{data_atual};{rating};"
+                        f"{trailer};{sinopse};{duracao};{genero};{tipo};{img_path}\n")
+
         caminho_ficheiro = os.path.join(root_dir, "files", "data.txt")
 
+        # Guardar o registo no ficheiro
         with open(caminho_ficheiro, "a", encoding="utf-8") as f:
             f.write(novo_registo)
 
-        print("Filme/Série inserido com sucesso!")
-        global dados_geral
-        dados_geral = carregar_dados()
-        update_active_screen("admin")
+        print("Dados guardados com sucesso.")
+        modal.destroy()
 
-    ctk.CTkButton(form_frame, text="Guardar", fg_color="#4F8377", command=salvar_dados).pack(pady=20)
 
-    def cancelar():
-        update_active_screen("admin")
+    ctk.CTkButton(scrollable_frame, text="Guardar", command=salvar_dados, fg_color="#4F8377").pack(pady=(20, 10))
+    ctk.CTkButton(scrollable_frame, text="Cancelar", command=modal.destroy, fg_color="#D9534F").pack(pady=(0, 20))
 
-    ctk.CTkButton(form_frame, text="Cancelar", fg_color="#D9534F", command=cancelar).pack()
-    form_frame.tkraise()
+
+def escolher_data(entry):
+    """Abre um date picker e insere a data selecionada no campo."""
+    date_picker = tk.Toplevel(app)
+    date_picker.title("Escolher Data")
+
+    def selecionar_data():
+        entry.delete(0, "end")
+        entry.insert(0, cal.get_date())
+        date_picker.destroy()
+
+    cal = Calendar(date_picker, selectmode="day", date_pattern="dd/MM/yyyy")
+    cal.pack(pady=20)
+
+    tk.Button(date_picker, text="Confirmar", command=selecionar_data).pack(pady=10)
 
 
 def clear_window():
@@ -1277,13 +1361,13 @@ def criar_cards(lista, parent_frame):
     for item in lista:
         cat_img_path = item["img_path"]
         movie_name = item["titulo"]
-        description = item["descricao"]
+        sinopse = item["sinopse"]
         trailer = item["trailer"]
         rating = str(item["rating"])
         duracao = item["duracao"]
 
         try:
-            year = int(item["data_completa"].split("/")[-1])
+            year = int(item["data_lancamento"].split("/")[-1])
         except ValueError:
             year = 0
 
@@ -1308,7 +1392,7 @@ def criar_cards(lista, parent_frame):
             card_frame.grid(row=linha, column=coluna, padx=5, pady=5)
 
             def on_click(event):
-                mostrar_detalhes_filme(movie_name, description, trailer, rating, year, duracao)
+                mostrar_detalhes_filme(movie_name, sinopse, trailer, rating, year, duracao)
 
             card_frame.bind("<Button-1>", on_click)
             card_label.bind("<Button-1>", on_click)
@@ -1317,7 +1401,7 @@ def criar_cards(lista, parent_frame):
             print(f"Erro ao carregar a imagem: {cat_img_path}")
 
 
-def mostrar_detalhes_filme(movie_name, description, trailer, rating, year, duracao):
+def mostrar_detalhes_filme(movie_name, sinopse, trailer, rating, year, duracao):
     """Mostra detalhes do item num frame sobreposto (pop-up)."""
     detalhes_frame = ctk.CTkFrame(app, width=800, height=500, corner_radius=6, fg_color="#4f8377")
     detalhes_frame.place(relx=0.5, rely=0.5, anchor="center")
@@ -1340,14 +1424,14 @@ def mostrar_detalhes_filme(movie_name, description, trailer, rating, year, durac
     )
     titulo.place(x=20, y=20)
 
-    desc = ctk.CTkLabel(
+    lbl_sinopse = ctk.CTkLabel(
         detalhes_frame,
-        text=description,
+        text=sinopse,
         font=("Helvetica", 12),
         text_color="#ffffff",
         wraplength=700
     )
-    desc.place(x=20, y=60)
+    lbl_sinopse.place(x=20, y=60)
 
     info = ctk.CTkLabel(
         detalhes_frame,
@@ -1358,7 +1442,7 @@ def mostrar_detalhes_filme(movie_name, description, trailer, rating, year, durac
     info.place(x=20, y=460)
 
 
-# ------------------ NOVAS FUNÇÕES PARA LISTAS E TREEVIEW ------------------ #
+
 def criar_lista_modal():
     """
     Abre um CTkToplevel centrado em relação a 'app', com mesmo ícone,
@@ -1426,7 +1510,6 @@ def criar_lista_modal():
         )
         modal.destroy()
         # Atualiza a treeview
-        # Precisamos de recriá-la: remove e volta a criar
         for widget in frames["perfil"].winfo_children():
             widget.destroy()
         ecra_perfil(frames["perfil"])
@@ -1445,7 +1528,7 @@ def create_list_treeview(lists_container):
     """
     # Criar a tree e definir colunas
     style = ttk.Style()
-    style.theme_use("clam")  # Tema base (podes optar por outro)
+    style.theme_use("clam")
     style.configure("Treeview",
                     background="#1A1A1A",
                     foreground="white",
