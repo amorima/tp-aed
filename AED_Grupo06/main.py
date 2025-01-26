@@ -9,6 +9,10 @@ import users
 import CTkMessagebox  # Para exibir mensagens de erro/sucesso
 from tkinter import ttk  # Para usar Treeview
 from tkcalendar import Calendar # Para o selecionador de datas
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 
 
 # ---------- Variáveis Globais ---------- #
@@ -546,11 +550,13 @@ def atualizar_informacoes_topo():
 
 def ecra_series(parent_frame):
     """
-    Aba de Séries. Apresenta duas colunas (Para ver / Brevemente),
-    com filtragem por género e ano. Filtra apenas tipo="serie".
+    Aba de Séries. Apresenta duas colunas: 'Para Ver' (que já saiu)
+    e 'Brevemente' (ano maior que atual).
+    MAS só exibe as séries do utilizador que tenham estado = 'para_ver'.
     """
     global scroll_left_series, scroll_right_series, dados_series
 
+    # Labels de título
     label_series_ver = ctk.CTkLabel(
         parent_frame,
         text='Para ver',
@@ -573,9 +579,15 @@ def ecra_series(parent_frame):
     scroll_right_series = ctk.CTkScrollableFrame(parent_frame, width=460, height=450)
     scroll_right_series.place(x=520, y=30)
 
-    # Gera lista de séries
-    dados_series = [x for x in dados_geral if x["tipo"] == "serie"]
+    # -- Carregar apenas as séries que o user marcou como 'para_ver' --
+    all_series = [x for x in dados_geral if x["tipo"] == "serie"]
+    dados_series = []
+    for s in all_series:
+        estado = get_user_item_state(s["titulo"])
+        if estado == "para_ver":
+            dados_series.append(s)
 
+    # Frame para filtros
     filtro_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
     filtro_frame.place(relx=1.0, y=0, x=-48, anchor="ne")
 
@@ -591,8 +603,7 @@ def ecra_series(parent_frame):
         filtro_frame,
         text="Filtrar",
         width=60,
-        command=lambda: aplicar_filtro_series(filtro_genero_series.get(),
-                                              filtro_ano_series.get())
+        command=lambda: aplicar_filtro_series(filtro_genero_series.get(), filtro_ano_series.get())
     )
     botao_filtrar_series.grid(row=0, column=2, padx=5)
 
@@ -668,9 +679,79 @@ def mostrar_series_filtradas():
     criar_cards(lista_futuro, scroll_right_series)
 
 
+def aplicar_filtro_series(genero_selecionado, ano_texto):
+    global scroll_left_series, scroll_right_series, dados_series
+
+    lista_filtrada = []
+    for item in dados_series:
+        if genero_selecionado != "Todos" and item["genero"] != genero_selecionado:
+            continue
+        if ano_texto.strip():
+            try:
+                ano_int = int(ano_texto.strip())
+                ano_lancamento = int(item["data_lancamento"].split("/")[-1])
+                if ano_lancamento != ano_int:
+                    continue
+            except ValueError:
+                print(f"Ano inválido: {ano_texto}")
+                continue
+        lista_filtrada.append(item)
+
+    for child in scroll_left_series.winfo_children():
+        child.destroy()
+    for child in scroll_right_series.winfo_children():
+        child.destroy()
+
+    ano_hoje = datetime.date.today().year
+    lista_passado = []
+    lista_futuro = []
+
+    for item in lista_filtrada:
+        try:
+            ano_lancamento = int(item["data_lancamento"].split("/")[-1])
+            if ano_lancamento <= ano_hoje:
+                lista_passado.append(item)
+            else:
+                lista_futuro.append(item)
+        except ValueError:
+            print(f"Data inválida no item: {item['titulo']}")
+            continue
+
+    criar_cards(lista_passado, scroll_left_series)
+    criar_cards(lista_futuro, scroll_right_series)
+
+
+def mostrar_series_filtradas():
+    global scroll_left_series, scroll_right_series, dados_series
+
+    for child in scroll_left_series.winfo_children():
+        child.destroy()
+    for child in scroll_right_series.winfo_children():
+        child.destroy()
+
+    ano_hoje = datetime.date.today().year
+    lista_passado = []
+    lista_futuro = []
+
+    for item in dados_series:
+        try:
+            ano_lancamento = int(item["data_lancamento"].split("/")[-1])
+            if ano_lancamento <= ano_hoje:
+                lista_passado.append(item)
+            else:
+                lista_futuro.append(item)
+        except ValueError:
+            print(f"Data inválida no item: {item['titulo']}")
+            continue
+
+    criar_cards(lista_passado, scroll_left_series)
+    criar_cards(lista_futuro, scroll_right_series)
+
+
 def ecra_filmes(parent_frame):
     """
-    Aba de Filmes, semelhante a séries mas filtra tipo="filme".
+    Aba de Filmes. Semelhante a séries, mas filtra tipo='filme'.
+    Só exibe filmes cujo estado do utilizador = 'para_ver'.
     """
     global scroll_left_filmes, scroll_right_filmes, dados_filmes
 
@@ -696,7 +777,13 @@ def ecra_filmes(parent_frame):
     scroll_right_filmes = ctk.CTkScrollableFrame(parent_frame, width=460, height=450)
     scroll_right_filmes.place(x=520, y=30)
 
-    dados_filmes = [x for x in dados_geral if x["tipo"] == "filme"]
+    # -- Carregar apenas os filmes que o user marcou como 'para_ver' --
+    all_filmes = [x for x in dados_geral if x["tipo"] == "filme"]
+    dados_filmes = []
+    for f in all_filmes:
+        estado = get_user_item_state(f["titulo"])
+        if estado == "para_ver":
+            dados_filmes.append(f)
 
     filtro_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
     filtro_frame.place(relx=1.0, y=0, x=-48, anchor="ne")
@@ -718,6 +805,75 @@ def ecra_filmes(parent_frame):
     botao_filtrar_filmes.grid(row=0, column=2, padx=5)
 
     mostrar_filmes_filtradas()
+
+
+def aplicar_filtro_filmes(genero_selecionado, ano_texto):
+    global scroll_left_filmes, scroll_right_filmes, dados_filmes
+
+    lista_filtrada = []
+    for item in dados_filmes:
+        if genero_selecionado != "Todos" and item["genero"] != genero_selecionado:
+            continue
+        if ano_texto.strip():
+            try:
+                ano_int = int(ano_texto.strip())
+                ano_lancamento = int(item["data_lancamento"].split("/")[-1])
+                if ano_lancamento != ano_int:
+                    continue
+            except ValueError:
+                print(f"Ano inválido: {ano_texto}")
+                continue
+        lista_filtrada.append(item)
+
+    for child in scroll_left_filmes.winfo_children():
+        child.destroy()
+    for child in scroll_right_filmes.winfo_children():
+        child.destroy()
+
+    ano_hoje = datetime.date.today().year
+    lista_passado = []
+    lista_futuro = []
+
+    for item in lista_filtrada:
+        try:
+            ano_lancamento = int(item["data_lancamento"].split("/")[-1])
+            if ano_lancamento <= ano_hoje:
+                lista_passado.append(item)
+            else:
+                lista_futuro.append(item)
+        except ValueError:
+            print(f"Data inválida no item: {item['titulo']}")
+            continue
+
+    criar_cards(lista_passado, scroll_left_filmes)
+    criar_cards(lista_futuro, scroll_right_filmes)
+
+
+def mostrar_filmes_filtradas():
+    global scroll_left_filmes, scroll_right_filmes, dados_filmes
+
+    for child in scroll_left_filmes.winfo_children():
+        child.destroy()
+    for child in scroll_right_filmes.winfo_children():
+        child.destroy()
+
+    ano_hoje = datetime.date.today().year
+    lista_passado = []
+    lista_futuro = []
+
+    for item in dados_filmes:
+        try:
+            ano_lancamento = int(item["data_lancamento"].split("/")[-1])
+            if ano_lancamento <= ano_hoje:
+                lista_passado.append(item)
+            else:
+                lista_futuro.append(item)
+        except ValueError:
+            print(f"Data inválida no item: {item['titulo']}")
+            continue
+
+    criar_cards(lista_passado, scroll_left_filmes)
+    criar_cards(lista_futuro, scroll_right_filmes)
 
 
 def aplicar_filtro_filmes(genero_selecionado, ano_texto):
@@ -878,8 +1034,44 @@ def mostrar_filmes_series(parent_frame):
 
     criar_cards(dados_geral, parent_frame)
 
+def get_user_watched_items(tipo):
+    """
+    Devolve uma lista de caminhos de imagem (poster) dos itens
+    do tipo 'serie' OU 'filme' que o user marcou como estado = 'visto'.
+    """
+    lista = []
+    for item in dados_geral:
+        if item["tipo"] == tipo:
+            estado = get_user_item_state(item["titulo"])
+            if estado == "visto":
+                lista.append(item["img_path"])
+    return lista
+
+def refresh_perfil():
+    """
+    Limpa e reconstrói o frame de 'perfil' para que as listas
+    de séries/filmes marcados como Visto/Favoritos sejam atualizadas.
+    """
+    if "perfil" in frames:
+        # Remove todos os widgets do frame 'perfil'
+        for widget in frames["perfil"].winfo_children():
+            widget.destroy()
+        # Chama novamente a função ecra_perfil(...) para redesenhar
+        ecra_perfil(frames["perfil"])
+
 
 def ecra_perfil(parent_frame):
+    # 1) Obtemos as métricas e estatísticas para o user atual
+    stats_dict = get_user_metrics_and_stats()
+    comentarios = stats_dict["comentarios"]
+    gostos = stats_dict["gostos"]
+    partilhas = stats_dict["partilhas"]
+    horas_series = stats_dict["horas_series"]
+    episodios_vistos = stats_dict["episodios_vistos"]
+    horas_filmes = stats_dict["horas_filmes"]
+    filmes_vistos = stats_dict["filmes_vistos"]
+
+    # 2) Construção do frame scrollável principal
     scrollable_content_perfil = ctk.CTkScrollableFrame(
         parent_frame,
         width=1050,
@@ -888,6 +1080,7 @@ def ecra_perfil(parent_frame):
     )
     scrollable_content_perfil.place(x=-1, y=-1)
 
+    # Área topo (avatar, botões, etc.)
     top_area = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     top_area.pack(fill="x", padx=20, pady=15)
 
@@ -902,6 +1095,7 @@ def ecra_perfil(parent_frame):
         image_path = os.path.join(user_folder, "profile_picture.png")
     else:
         image_path = './images/default_avatar.png'
+
     avatar_image = ctk.CTkImage(Image.open(image_path), size=(100, 100))
     local_avatar_label.configure(image=avatar_image, text="")
 
@@ -945,26 +1139,28 @@ def ecra_perfil(parent_frame):
     )
     edit_button.pack(anchor="w", pady=(10, 0))
 
+    # --- counters frame ---
     counters_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     counters_frame.pack(fill="x", padx=20)
 
+    # Agora só temos 3 contadores: comentários, gostos, partilhas
     counters_data = [
-        ("a seguir", "43"),
-        ("seguidores", "43"),
-        ("comentários", "43"),
-        ("gostos", "43"),
-        ("partilhas", "43"),
+        ("comentários", str(comentarios)),
+        ("gostos", str(gostos)),
+        ("partilhas", str(partilhas)),
     ]
-
     for label_text, label_value in counters_data:
-        container = ctk.CTkFrame(counters_frame, width=177, height=89, fg_color="#242424", border_color="#84C7B9", border_width=2)
+        container = ctk.CTkFrame(counters_frame, width=177, height=89,
+                                 fg_color="#242424", border_color="#84C7B9", border_width=2)
         container.pack(side="left", padx=5)
         container.pack_propagate(False)
+
         valor = ctk.CTkLabel(container, text=label_value, font=("Helvetica", 20, "bold"))
         valor.pack(anchor="n", pady=(15, 0))
         texto = ctk.CTkLabel(container, text=label_text, font=("Helvetica", 12))
         texto.pack()
 
+    # --- Estatísticas ---
     stats_label = ctk.CTkLabel(
         scrollable_content_perfil,
         text="Estatísticas",
@@ -977,21 +1173,23 @@ def ecra_perfil(parent_frame):
     stats_frame.pack(fill="x", padx=20)
 
     stats_data = [
-        ("horas a ver séries", "43"),
-        ("episódios vistos", "43"),
-        ("horas a ver filmes", "43"),
-        ("filmes vistos", "43"),
+        ("horas a ver séries", str(horas_series)),
+        ("episódios vistos", str(episodios_vistos)),
+        ("horas a ver filmes", str(horas_filmes)),
+        ("filmes vistos", str(filmes_vistos)),
     ]
-
     for label_text, label_value in stats_data:
-        container = ctk.CTkFrame(stats_frame, width=177, height=89, fg_color="#242424", border_color="#84C7B9", border_width=2)
+        container = ctk.CTkFrame(stats_frame, width=177, height=89,
+                                 fg_color="#242424", border_color="#84C7B9", border_width=2)
         container.pack(side="left", padx=5)
         container.pack_propagate(False)
+
         valor = ctk.CTkLabel(container, text=label_value, font=("Helvetica", 20, "bold"))
         valor.pack(anchor="n", pady=(15, 0))
         texto = ctk.CTkLabel(container, text=label_text, font=("Helvetica", 12))
         texto.pack()
 
+    # --- Listas ---
     lists_label = ctk.CTkLabel(
         scrollable_content_perfil,
         text="Listas",
@@ -1000,14 +1198,11 @@ def ecra_perfil(parent_frame):
     )
     lists_label.pack(anchor="w", padx=20, pady=(20, 5))
 
-    # Frame onde será mostrada a Treeview com as listas do utilizador
     lists_container = ctk.CTkFrame(scrollable_content_perfil, fg_color="#1A1A1A", width=750, height=150, corner_radius=6)
     lists_container.pack(anchor="w", padx=20, pady=5)
 
-    # Cria a Treeview dentro do lists_container
     create_list_treeview(lists_container)
 
-    # Botão para criar uma nova lista
     create_list_button = ctk.CTkButton(
         scrollable_content_perfil,
         text="+\nCRIAR NOVA LISTA",
@@ -1018,9 +1213,9 @@ def ecra_perfil(parent_frame):
         height=150,
         command=lambda: criar_lista_modal()
     )
-    # Ajuste de posição conforme seu layout (exemplo):
     create_list_button.place(x=793, y=lists_container.winfo_y() + 419)
 
+    # --- Séries (visto) ---
     series_label = ctk.CTkLabel(
         scrollable_content_perfil,
         text="Séries",
@@ -1032,25 +1227,18 @@ def ecra_perfil(parent_frame):
     series_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     series_frame.pack(anchor="w", padx=20)
 
-    series_posters = [
-        "./images/catalog/hp1.jpg",
-        "./images/terra_indomavel.png",
-        "./images/agora_estamos.png",
-        "./images/perfil_falso.png",
-        "./images/got.png",
-        "./images/breaking_bad.png",
-        "./images/anne_with_e.png"
-    ]
+    # Itens "visto" (tipo=serie)
+    series_posters = get_user_watched_items("serie")
     for poster_path in series_posters:
         try:
             img = Image.open(poster_path).resize((100, 148), Image.Resampling.LANCZOS)
             poster_ctk = ctk.CTkImage(img, size=(100, 148))
         except:
             poster_ctk = None
-
         lbl_poster = ctk.CTkLabel(series_frame, text="", image=poster_ctk)
         lbl_poster.pack(side="left", padx=5)
 
+    # --- Séries Favoritas ---
     fav_series_label = ctk.CTkLabel(
         scrollable_content_perfil,
         text="Séries Favoritas",
@@ -1062,7 +1250,6 @@ def ecra_perfil(parent_frame):
     fav_series_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     fav_series_frame.pack(anchor="w", padx=20)
 
-    # Lê o ficheiro fav_series.txt
     fav_series_path = os.path.join(user_folder, "fav_series.txt")
     if os.path.isfile(fav_series_path):
         with open(fav_series_path, "r", encoding="utf-8") as f:
@@ -1070,25 +1257,22 @@ def ecra_perfil(parent_frame):
     else:
         fav_series_titles = []
 
-    # Para cada título favorito, descobrir o img_path no dados_geral
     fav_series_images = []
     for title in fav_series_titles:
         item = next((x for x in dados_geral if x["titulo"] == title), None)
         if item and os.path.exists(item["img_path"]):
             fav_series_images.append(item["img_path"])
 
-    # Agora sim, fazes o loop para mostrar os posters
     for poster_path in fav_series_images:
         try:
             img = Image.open(poster_path).resize((100, 148), Image.Resampling.LANCZOS)
             poster_ctk = ctk.CTkImage(img, size=(100, 148))
         except:
             poster_ctk = None
-
         lbl_poster = ctk.CTkLabel(fav_series_frame, text="", image=poster_ctk)
         lbl_poster.pack(side="left", padx=5)
 
-
+    # --- Filmes (visto) ---
     movies_label = ctk.CTkLabel(
         scrollable_content_perfil,
         text="Filmes",
@@ -1100,25 +1284,18 @@ def ecra_perfil(parent_frame):
     movies_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     movies_frame.pack(anchor="w", padx=20)
 
-    movies_posters = [
-        "./images/poderoso_chefao.png",
-        "./images/sonho_de_liberdade.png",
-        "./images/lista_de_schindler.png",
-        "./images/forrest_gump.png",
-        "./images/rei_leao.png",
-        "./images/espera_de_um_milagre.png",
-        "./images/senhor_anel.png"
-    ]
+    # Itens "visto" (tipo=filme)
+    movies_posters = get_user_watched_items("filme")
     for poster_path in movies_posters:
         try:
             img = Image.open(poster_path).resize((100, 148), Image.Resampling.LANCZOS)
             poster_ctk = ctk.CTkImage(img, size=(100, 148))
         except:
             poster_ctk = None
-
         lbl_poster = ctk.CTkLabel(movies_frame, text="", image=poster_ctk)
         lbl_poster.pack(side="left", padx=5)
 
+    # --- Filmes Favoritos ---
     fav_movies_label = ctk.CTkLabel(
         scrollable_content_perfil,
         text="Filmes Favoritos",
@@ -1149,57 +1326,318 @@ def ecra_perfil(parent_frame):
             poster_ctk = ctk.CTkImage(img, size=(100, 148))
         except:
             poster_ctk = None
-
         lbl_poster = ctk.CTkLabel(fav_movies_frame, text="", image=poster_ctk)
         lbl_poster.pack(side="left", padx=5)
 
 
 def ecra_admin(parent_frame):
-    scrollable_content_admin = ctk.CTkScrollableFrame(
-        parent_frame,
-        width=1050,
-        height=540,
-        fg_color="#242424"
+    """
+    Ecrã de administração: Dashboard + gestão de utilizadores.
+    """
+    # Limpar e recriar frame
+    for w in parent_frame.winfo_children():
+        w.destroy()
+
+    admin_frame = ctk.CTkScrollableFrame(parent_frame, width=1050, height=540, fg_color="#242424")
+    admin_frame.place(x=-1, y=-1)
+
+    # Título
+    label_titulo = ctk.CTkLabel(
+        admin_frame,
+        text="Consola de Administração",
+        font=("Helvetica", 24, "bold"),
+        text_color="#84C7B9"
     )
-    scrollable_content_admin.place(x=-1, y=-1)
+    label_titulo.pack(pady=10, anchor="w", padx=20)
 
-    label = ctk.CTkLabel(scrollable_content_admin,
-                         text="Área de Admin",
-                         font=("Helvetica", 24, "bold"),
-                         text_color="#4F8377")
-    label.pack(pady=10)
+    # ----- TOP: 2 Gráficos + 3 Botões -----
+    top_section = ctk.CTkFrame(admin_frame, fg_color="#242424")
+    top_section.pack(fill="x", padx=10, pady=10)
 
-    btn_users = ctk.CTkButton(
-        scrollable_content_admin,
-        text="Gerir Utilizadores",
+    # FRAME p/ gráficos (séries + filmes)
+    charts_frame = ctk.CTkFrame(top_section, fg_color="#2A2A2A", width=850, height=400)
+    charts_frame.pack(side="left", padx=5, pady=5)
+    charts_frame.pack_propagate(False)
+
+    # 1) Séries Mais Vistas (Bar Chart)
+    series_data = obter_series_mais_vistas()  # dict: { "GOT": 10, "Friends": 7, ... }
+    series_nomes = list(series_data.keys())
+    series_valores = list(series_data.values())
+
+    fig_series = plt.Figure(figsize=(3.5, 3), dpi=100)
+    ax_series = fig_series.add_subplot(111)
+    ax_series.barh(series_nomes, series_valores, color="#84C7B9")
+    ax_series.set_title("Séries Mais Vistas", color="white")
+    ax_series.tick_params(axis='x', colors='white')
+    ax_series.tick_params(axis='y', colors='white')
+    ax_series.spines[:].set_color("white")
+    fig_series.patch.set_facecolor("#2A2A2A")
+    ax_series.set_facecolor("#2A2A2A")
+
+    canvas_series = FigureCanvasTkAgg(fig_series, master=charts_frame)
+    canvas_series.draw()
+    canvas_series.get_tk_widget().pack(side="left", padx=10)
+
+    # 2) Filmes Mais Vistos (Line Chart)
+    filmes_data = obter_filmes_mais_vistos()  # dict: { "Filme 1": 12, "Filme 2": 5, ... }
+    filmes_nomes = list(filmes_data.keys())
+    filmes_valores = list(filmes_data.values())
+
+    fig_filmes = plt.Figure(figsize=(3.5, 3), dpi=100)
+    ax_filmes = fig_filmes.add_subplot(111)
+    ax_filmes.plot(filmes_valores, color="#84C7B9", marker="o")
+    ax_filmes.set_title("Filmes Mais Vistos", color="white")
+    ax_filmes.tick_params(axis='x', colors='white')
+    ax_filmes.tick_params(axis='y', colors='white')
+    ax_filmes.spines[:].set_color("white")
+    fig_filmes.patch.set_facecolor("#2A2A2A")
+    ax_filmes.set_facecolor("#2A2A2A")
+
+    ax_filmes.set_xticks(range(len(filmes_nomes)))
+    ax_filmes.set_xticklabels(filmes_nomes, rotation=45, ha="right", color="white")
+
+    canvas_filmes = FigureCanvasTkAgg(fig_filmes, master=charts_frame)
+    canvas_filmes.draw()
+    canvas_filmes.get_tk_widget().pack(side="left", padx=10)
+
+    # FRAME p/ botões
+    buttons_frame = ctk.CTkFrame(top_section, fg_color="#242424", width=250)
+    buttons_frame.pack(side="left", fill="y", padx=5, pady=5)
+
+    btn_add_conteudo = ctk.CTkButton(
+        buttons_frame,
+        text="+ Adicionar Série/Filme",
         fg_color="#4F8377",
-        command=gerir_utilizadores
+        command=ecra_inserir  # a função que já tens
     )
-    btn_users.pack(pady=5)
+    btn_add_conteudo.pack(fill="x", pady=5)
 
-    btn_categorias = ctk.CTkButton(
-        scrollable_content_admin,
-        text="Gerir Categorias",
+    btn_add_user = ctk.CTkButton(
+        buttons_frame,
+        text="+ Adicionar Utilizador",
         fg_color="#4F8377",
-        command=gerir_categorias
+        command=abrir_modal_adicionar_user  # vamos criar esta função abaixo
     )
-    btn_categorias.pack(pady=5)
+    btn_add_user.pack(fill="x", pady=5)
 
-    btn_dashboard = ctk.CTkButton(
-        scrollable_content_admin,
-        text="Dashboard Admin",
+    btn_notif = ctk.CTkButton(
+        buttons_frame,
+        text="+ Notificação Global",
         fg_color="#4F8377",
-        command=ecra_dashboard_admin
+        command=lambda: print("Futura funcionalidade de notificação global...")
     )
-    btn_dashboard.pack(pady=5)
+    btn_notif.pack(fill="x", pady=5)
 
-    btn_inserir_conteudo = ctk.CTkButton(
-        scrollable_content_admin,
-        text="Inserir Filme/Série",
-        fg_color="#4F8377",
-        command=ecra_inserir
+    # ----- BOTTOM: Gestão de Utilizadores (Treeview) -----
+    label_gestao = ctk.CTkLabel(
+        admin_frame,
+        text="Gestão de Utilizadores",
+        font=("Helvetica", 18, "bold"),
+        text_color="#84C7B9"
     )
-    btn_inserir_conteudo.pack(pady=5)
+    label_gestao.pack(anchor="w", padx=20, pady=(20, 5))
+
+    tree_frame = ctk.CTkFrame(admin_frame, fg_color="#1A1A1A", width=1000, height=200)
+    tree_frame.pack(padx=10, pady=5)
+    tree_frame.pack_propagate(False)
+
+    style = ttk.Style()
+    style.theme_use("clam")
+    style.configure("Treeview",
+                    background="#1A1A1A",
+                    foreground="white",
+                    rowheight=24,
+                    fieldbackground="#1A1A1A")
+    style.map("Treeview", background=[("selected", "#4F8377")])
+
+    columns = ("username", "email", "estado", "acoes")
+    tree = ttk.Treeview(tree_frame, columns=columns, show="headings", selectmode="browse")
+    tree.heading("username", text="Username")
+    tree.heading("email", text="Email")
+    tree.heading("estado", text="Estado")
+
+    tree.column("username", width=150)
+    tree.column("email", width=200)
+    tree.column("estado", width=80)
+
+    tree.pack(fill="both", expand=True)
+
+    # Carregar utilizadores
+    all_users = users.get_all_users()  # Ajusta à tua função real
+    for usr in all_users:
+        # usr = { "username":..., "email":..., "estado":... } se tiveres
+        username_ = usr.get("username", "")
+        email_ = usr.get("email", "")
+        estado_ = usr.get("estado", "ativo")  # ou outro
+        tree.insert("", "end", values=(username_, email_, estado_))
+
+    def on_tree_double_click(event):
+        sel = tree.selection()
+        if not sel:
+            return
+        item_id = sel[0]
+        row = tree.item(item_id)
+        vals = row["values"]  # [username, email, estado, acoes]
+        username_clicado = vals[0]
+        abrir_modal_acoes_user(username_clicado)
+
+    tree.bind("<Double-1>", on_tree_double_click)
+
+def obter_series_mais_vistas():
+    """
+    Percorre dados_geral para encontrar títulos de tipo='serie',
+    e conta quantos utilizadores marcaram 'visto' naquele título.
+    Retorna dict {titulo: contagem}, ordenado desc se quiseres.
+    """
+    contagens = {}
+    # Para cada série em dados_geral
+    for item in dados_geral:
+        if item["tipo"] == "serie":
+            titulo = item["titulo"]
+            # Ver quantas pessoas marcaram "visto"
+            # Tens de varrer todos os users (ex: users.get_all_users())
+            # e ver se no metricas deles está "titulo;visto"
+            count = 0
+            all_users = users.get_all_users()  # ajusta ao que tens
+            for u in all_users:
+                # Caminho do metricas.txt desse user
+                user_metric_path = os.path.join(root_dir, "files", "users", u["username"], "metricas", "metricas.txt")
+                if os.path.isfile(user_metric_path):
+                    with open(user_metric_path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            parts = line.split(";")
+                            if len(parts) >= 2:
+                                if parts[0] == titulo and parts[1] == "visto":
+                                    count += 1
+                                    break  # Já sabemos que este user marcou, não soma +1 repetido
+            contagens[titulo] = count
+    # Se quiseres ordenar decrescente:
+    # contagens = dict(sorted(contagens.items(), key=lambda x: x[1], reverse=True))
+    return contagens
+
+def abrir_modal_acoes_user(username_clicado):
+    popup = ctk.CTkToplevel(app)
+    popup.title(f"Ações: {username_clicado}")
+    popup.geometry("200x200+650+350")
+    popup.iconbitmap(".//images//hoot.ico")
+    popup.resizable(False, False)
+
+    ctk.CTkLabel(popup, text=f"Ações para {username_clicado}").pack(pady=10)
+
+    def promover():
+        users.set_admin(username_clicado)  # se tiveres
+        popup.destroy()
+        ecra_admin(frames["admin"])  # recarrega
+
+    def bloquear_15dias():
+        users.block_user(username_clicado, 15)  # se tiveres
+        popup.destroy()
+        ecra_admin(frames["admin"])
+
+    def remover():
+        users.remove_user(username_clicado)  # se tiveres
+        popup.destroy()
+        ecra_admin(frames["admin"])
+
+    btn_promover = ctk.CTkButton(popup, text="Promover Admin", command=promover)
+    btn_promover.pack(pady=5)
+    btn_bloquear = ctk.CTkButton(popup, text="Bloquear 15 dias", command=bloquear_15dias, fg_color="#D9A92E")
+    btn_bloquear.pack(pady=5)
+    btn_remover = ctk.CTkButton(popup, text="Remover User", command=remover, fg_color="#D9534F")
+    btn_remover.pack(pady=5)
+
+
+def abrir_modal_adicionar_user():
+    modal = ctk.CTkToplevel(app)
+    modal.title("Adicionar Utilizador")
+    modal.geometry("400x300+600+300")
+    modal.iconbitmap(".//images//hoot.ico")
+    modal.resizable(False, False)
+
+    lbl = ctk.CTkLabel(modal, text="Adicionar novo utilizador", font=("Helvetica", 18, "bold"))
+    lbl.pack(pady=10)
+
+    frame_form = ctk.CTkFrame(modal)
+    frame_form.pack(pady=10, padx=10, fill="x")
+
+    # Username
+    ctk.CTkLabel(frame_form, text="Username:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+    ent_user = ctk.CTkEntry(frame_form, width=200)
+    ent_user.grid(row=0, column=1, padx=5, pady=5)
+
+    # Email
+    ctk.CTkLabel(frame_form, text="Email:").grid(row=1, column=0, sticky="w", padx=5, pady=5)
+    ent_email = ctk.CTkEntry(frame_form, width=200)
+    ent_email.grid(row=1, column=1, padx=5, pady=5)
+
+    # Password
+    ctk.CTkLabel(frame_form, text="Password:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+    ent_pass = ctk.CTkEntry(frame_form, width=200, show="*")
+    ent_pass.grid(row=2, column=1, padx=5, pady=5)
+
+    # Checkboxes para flags
+    var_admin = tk.BooleanVar(value=False)
+    chk_admin = ctk.CTkCheckBox(frame_form, text="Administrador?", variable=var_admin)
+    chk_admin.grid(row=3, column=0, padx=5, pady=5)
+
+    def guardar():
+        user_ = ent_user.get().strip()
+        email_ = ent_email.get().strip()
+        pass_ = ent_pass.get().strip()
+        is_admin_flag = var_admin.get()
+
+        if not user_ or not email_ or not pass_:
+            print("Preencha todos campos!")
+            return
+
+        # Cria user via users.sign
+        # Nota: depende do que faz a tua users.sign
+        users.sign(user_, pass_, email_, None)
+
+        # Se for admin, tens de o setar como admin
+        if is_admin_flag:
+            users.set_admin(user_)
+
+        # Fecha modal e atualiza ecra_admin
+        modal.destroy()
+        if "admin" in frames:
+            ecra_admin(frames["admin"])
+
+    btn_save = ctk.CTkButton(modal, text="Guardar", fg_color="#4F8377", command=guardar)
+    btn_save.pack(pady=5)
+
+    btn_cancel = ctk.CTkButton(modal, text="Cancelar", fg_color="gray", command=modal.destroy)
+    btn_cancel.pack(pady=5)
+
+
+def obter_filmes_mais_vistos():
+    """
+    Igual ao anterior, mas para tipo='filme'.
+    """
+    contagens = {}
+    for item in dados_geral:
+        if item["tipo"] == "filme":
+            titulo = item["titulo"]
+            count = 0
+            all_users = users.get_all_users()
+            for u in all_users:
+                user_metric_path = os.path.join(root_dir, "files", "users", u["username"], "metricas", "metricas.txt")
+                if os.path.isfile(user_metric_path):
+                    with open(user_metric_path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            parts = line.split(";")
+                            if len(parts) >= 2:
+                                if parts[0] == titulo and parts[1] == "visto":
+                                    count += 1
+                                    break
+            contagens[titulo] = count
+    return contagens
 
 
 def gerir_utilizadores():
@@ -1522,6 +1960,121 @@ def criar_cards(lista, parent_frame):
         except (FileNotFoundError, IOError):
             print(f"Erro ao carregar a imagem: {cat_img_path}")
 
+def get_user_metrics_and_stats():
+    """
+    Lê todos os ficheiros em .//files//catalog//metricas//<TITULO>.txt
+    para calcular:
+      - número de comentários do user
+      - número de gostos (gostou=True) do user
+      - número de partilhas (partilhou=True) do user
+
+    Lê também dados_geral e 'metricas.txt' do user para calcular:
+      - horas a ver séries (soma dos minutos // 60) dos itens "visto" (tipo=serie)
+      - episódios vistos (soma dos minutos // 40) de "visto" (tipo=serie)
+      - horas a ver filmes (soma dos minutos // 60) de "visto" (tipo=filme)
+      - filmes vistos (quantos itens tipo=filme com estado="visto")
+
+    Nota: Se estiveres a guardar durações de temporadas inteiras,
+          isso vai inflacionar muito os valores de horas/episódios!
+    """
+
+    # --- 1) Contagem de comentários, gostos, partilhas ---
+    catalog_metricas_dir = os.path.join(root_dir, "files", "catalog", "metricas")
+    num_comments = 0
+    num_likes = 0
+    num_shares = 0
+
+    if not os.path.exists(catalog_metricas_dir):
+        os.makedirs(catalog_metricas_dir)
+
+    for ficheiro in os.listdir(catalog_metricas_dir):
+        if ficheiro.endswith(".txt"):
+            full_path = os.path.join(catalog_metricas_dir, ficheiro)
+            with open(full_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    partes = line.split(";")
+                    # formato: user;rating;gostou;partilhou;comentario
+                    if len(partes) < 5:
+                        continue
+                    user_ = partes[0]
+                    gostou_ = partes[2]
+                    partilhou_ = partes[3]
+                    comentario_ = partes[4]
+
+                    if user_ == username:
+                        if comentario_.strip():
+                            num_comments += 1
+                        if gostou_ == "True":
+                            num_likes += 1
+                        if partilhou_ == "True":
+                            num_shares += 1
+
+    # --- 2) Contagem das horas/episódios/filmes vistos ---
+    series_minutes = 0
+    filmes_minutes = 0
+    filmes_count = 0
+
+    for item in dados_geral:
+        estado = get_user_item_state(item["titulo"])
+        if estado == "visto":
+            # Tenta converter a duração em inteiro (minutos)
+            try:
+                dur = int(item["duracao"])
+            except:
+                dur = 0
+
+            if item["tipo"] == "serie":
+                series_minutes += dur
+            elif item["tipo"] == "filme":
+                filmes_minutes += dur
+                filmes_count += 1
+    
+    # Converte minutos em horas (usar floor -> //)
+    horas_series = series_minutes // 60
+    horas_filmes = filmes_minutes // 60
+    
+
+    # Divide por 40 para “episódios vistos”
+    episodios_vistos = series_minutes // 40
+    print(series_minutes)
+    print(episodios_vistos)
+    stats = {
+        "comentarios": num_comments,
+        "gostos": num_likes,
+        "partilhas": num_shares,
+        "horas_series": horas_series,
+        "episodios_vistos": episodios_vistos,
+        "horas_filmes": horas_filmes,
+        "filmes_vistos": filmes_count
+    }
+    return stats
+
+
+def get_user_item_state(movie_name):
+    """
+    Lê o ficheiro 'metricas.txt' do utilizador ativo e devolve o estado do item.
+    O estado pode ser 'para_ver', 'visto' ou None (caso não exista registo).
+    """
+    user_metric_path = os.path.join(root_dir, "files", "users", username, "metricas", "metricas.txt")
+    if not os.path.isfile(user_metric_path):
+        return None  # se não existir, não há estado
+
+    with open(user_metric_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            partes = line.split(";")
+            if len(partes) >= 2:
+                titulo_reg = partes[0]
+                estado_reg = partes[1]
+                if titulo_reg == movie_name:
+                    return estado_reg
+    return None
+
 
 def mostrar_detalhes_filme(movie_name):
 
@@ -1625,12 +2178,9 @@ def mostrar_detalhes_filme(movie_name):
                 f.write(linha + "\n")
 
     all_data = load_all_userdata()
-
-    # Se ainda não existir nada para o user atual, inicializa
     if username not in all_data:
         all_data[username] = {"rating": 0, "gostou": False, "partilhou": False, "comentario": ""}
 
-    # Facilita o acesso
     user_data = all_data[username]
 
     # -------------------------------------------------------------------------
@@ -1695,13 +2245,10 @@ def mostrar_detalhes_filme(movie_name):
     actions_frame.pack(fill="x", padx=10, pady=5)
 
     def marcar_estado(novo_estado):
-        """
-        Guarda em .//files//users//<username>//metricas//metricas.txt:
-          <movie_name>;<visto ou para_ver>
-        """
         user_metric_path = os.path.join(root_dir, "files", "users", username, "metricas", "metricas.txt")
         os.makedirs(os.path.dirname(user_metric_path), exist_ok=True)
 
+        # Lê o que já existe
         linhas = []
         if os.path.exists(user_metric_path):
             with open(user_metric_path, "r", encoding="utf-8") as f:
@@ -1714,11 +2261,14 @@ def mostrar_detalhes_filme(movie_name):
                 continue
             partes = ln_strip.split(";")
             if len(partes) >= 2 and partes[0] == movie_name:
-                # ignora para sobrescrever
+                # ignora para sobrescrever o estado
                 continue
             filtradas.append(ln_strip)
+
+        # Adiciona agora o novo estado
         filtradas.append(f"{movie_name};{novo_estado}")
 
+        # Grava de volta
         with open(user_metric_path, "w", encoding="utf-8") as f:
             for l in filtradas:
                 f.write(l + "\n")
@@ -1728,6 +2278,8 @@ def mostrar_detalhes_filme(movie_name):
             message=f"'{movie_name}' -> {novo_estado}",
             icon="check"
         )
+        # >>> AQUI chamamos refresh_perfil() para atualizar a secção 'visto' no Perfil
+        refresh_perfil()
 
     btn_visto = ctk.CTkButton(actions_frame, text="Marcar como Visto", command=lambda: marcar_estado("visto"))
     btn_visto.pack(side="left", padx=5)
@@ -1746,24 +2298,21 @@ def mostrar_detalhes_filme(movie_name):
             )
     
     def marcar_favorito():
-        # Pasta do utilizador
+        # Ficheiro de favoritos: fav_series.txt ou fav_filmes.txt
         user_folder = os.path.join(root_dir, "files", "users", username)
         if not os.path.exists(user_folder):
             os.makedirs(user_folder)
 
-        # Escolher ficheiro de favoritos de acordo com o tipo
         if info["tipo"] == "serie":
             fav_file_path = os.path.join(user_folder, "fav_series.txt")
         else:
             fav_file_path = os.path.join(user_folder, "fav_filmes.txt")
 
-        # Lê os favoritos existentes para evitar duplicados
         favoritos_existentes = []
         if os.path.isfile(fav_file_path):
             with open(fav_file_path, "r", encoding="utf-8") as f:
                 favoritos_existentes = [ln.strip() for ln in f if ln.strip()]
 
-        # Se ainda não existir, adiciona
         if movie_name not in favoritos_existentes:
             with open(fav_file_path, "a", encoding="utf-8") as f:
                 f.write(movie_name + "\n")
@@ -1780,6 +2329,8 @@ def mostrar_detalhes_filme(movie_name):
                 icon="info"
             )
 
+        # >>> Atualiza também o perfil para refletir o novo favorito
+        refresh_perfil()
 
     btn_trailer = ctk.CTkButton(actions_frame, text="Trailer", fg_color="#F2C94C", text_color="black", command=abrir_trailer)
     btn_trailer.pack(side="left", padx=5)

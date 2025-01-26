@@ -388,6 +388,146 @@ def changeMail(user, oldPassword, newMail):
             option_1="Ok"
         )
 
+
+import os
+
+def set_admin(username):
+    """
+    Marca o estado do usuário como 'admin' (ou define um flag).
+    Necessário ter algo como userinfo.txt em users/<username>/
+    """
+    users_dir = os.path.join(".", "files", "users")
+    user_folder = os.path.join(users_dir, username)
+
+    if not os.path.exists(user_folder):
+        print(f"Usuário {username} não existe.")
+        return
+
+    userinfo_path = os.path.join(user_folder, "userinfo.txt")
+    # Se não existir, cria. Se existir, reescreve 'estado=admin'.
+    lines = []
+    found_estado = False
+
+    if os.path.isfile(userinfo_path):
+        with open(userinfo_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+    new_content = []
+    for ln in lines:
+        if ln.strip().startswith("estado="):
+            new_content.append("estado=admin\n")
+            found_estado = True
+        else:
+            new_content.append(ln)
+
+    if not found_estado:
+        new_content.append("estado=admin\n")
+
+    with open(userinfo_path, "w", encoding="utf-8") as f:
+        f.writelines(new_content)
+
+    print(f"Usuário {username} promovido a admin.")
+
+
+def block_user(username, dias=15):
+    """
+    Marca o estado do usuário como 'bloqueado' e, opcionalmente,
+    armazena a data de bloqueio ou algo assim. Exemplo simples:
+    """
+    users_dir = os.path.join(".", "files", "users")
+    user_folder = os.path.join(users_dir, username)
+    if not os.path.exists(user_folder):
+        print(f"Usuário {username} não existe.")
+        return
+
+    userinfo_path = os.path.join(user_folder, "userinfo.txt")
+    lines = []
+    if os.path.isfile(userinfo_path):
+        with open(userinfo_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+    new_content = []
+    found_estado = False
+    for ln in lines:
+        if ln.strip().startswith("estado="):
+            new_content.append("estado=bloqueado\n")
+            found_estado = True
+        else:
+            new_content.append(ln)
+    if not found_estado:
+        new_content.append("estado=bloqueado\n")
+
+    with open(userinfo_path, "w", encoding="utf-8") as f:
+        f.writelines(new_content)
+
+    print(f"Usuário {username} bloqueado por {dias} dias (exemplo).")
+
+
+def remove_user(username):
+    """
+    Remove a pasta do usuário e todo o conteúdo.
+    **CUIDADO**: isso apaga os dados desse user permanentemente!
+    """
+    import shutil
+    users_dir = os.path.join(".", "files", "users")
+    user_folder = os.path.join(users_dir, username)
+    if os.path.exists(user_folder):
+        shutil.rmtree(user_folder)  # apaga tudo
+        print(f"Usuário {username} removido completamente!")
+    else:
+        print(f"Usuário {username} não existe.")
+
+
+def get_all_users():
+    """
+    Lê cada subpasta em ./files/users e tenta ler um arquivo userinfo.txt
+    para descobrir o 'username', 'email' e 'estado'.
+    Retorna lista de dicionários: [{"username":..., "email":..., "estado":...}, ...]
+    """
+    users_dir = os.path.join(".", "files", "users")
+    lista_users = []
+
+    if not os.path.exists(users_dir):
+        return lista_users  # Se não existir, lista vazia
+
+    for pasta in os.listdir(users_dir):
+        caminho_pasta = os.path.join(users_dir, pasta)
+        if os.path.isdir(caminho_pasta):
+            # Tenta ler userinfo.txt
+            user_info_path = os.path.join(caminho_pasta, "userinfo.txt")
+            username_ = pasta  # se não achar nada, ao menos o nome da pasta
+            email_ = ""
+            estado_ = "ativo"  # default
+
+            if os.path.isfile(user_info_path):
+                # Exemplo de formato do userinfo.txt:
+                # username=joao
+                # email=joao@email.com
+                # estado=ativo
+                with open(user_info_path, "r", encoding="utf-8") as f:
+                    for linha in f:
+                        linha = linha.strip()
+                        if "=" in linha:
+                            chave, valor = linha.split("=", 1)
+                            chave = chave.strip()
+                            valor = valor.strip()
+                            if chave == "username":
+                                username_ = valor
+                            elif chave == "email":
+                                email_ = valor
+                            elif chave == "estado":
+                                estado_ = valor
+
+            lista_users.append({
+                "username": username_,
+                "email": email_,
+                "estado": estado_
+            })
+
+    # Se quiser ordenar, ex: por username e depois email:
+    lista_users.sort(key=lambda u: (u["username"].lower(), u["email"].lower(), u["estado"].lower()))
+    return lista_users
+
 # ------------------------------------------
 # Favoritos
 # ------------------------------------------
