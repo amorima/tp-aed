@@ -27,6 +27,9 @@ dados_filmes = []
 
 avatar_label = None
 label_username_top = None
+current_screen = None
+catalogo_path = ".//files//catalog"
+
 
 # As referências para os scrollables de séries/filmes
 scroll_left_series = None
@@ -406,11 +409,9 @@ def iniciar_frames():
         frame_admin.place(relx=1.0, rely=1.0, anchor="se")
         frames["admin"] = frame_admin
 
-    top_cover_frame = ctk.CTkFrame(app, width=1050, height=100, fg_color="#242424")
-    top_cover_frame.place(x=150, y=0)
-
     criar_menu_lateral()
     atualizar_informacoes_topo()
+
 
     # Carregar/Recarregar dados
     global dados_series, dados_filmes
@@ -430,6 +431,8 @@ def iniciar_frames():
 
 def criar_menu_lateral():
     """Cria o menu lateral com botões para navegar entre as diferentes abas."""
+    global botao_series, botao_filmes, botao_explorar, botao_perfil
+
     logo_p = ctk.CTkImage(Image.open('./images/logo_ui.png'), size=(83, 48))
     label_logo_p = ctk.CTkLabel(app, text="", image=logo_p)
     label_logo_p.place(x=29, y=26)
@@ -486,6 +489,26 @@ def criar_menu_lateral():
     )
     botao_perfil.place(x=28, y=534)
 
+    # Atualiza o estado inicial
+    atualizar_botoes_menu()
+
+def atualizar_botoes_menu():
+    """Atualiza o estado de hover/seleção dos botões do menu."""
+    botoes = {
+        "series": botao_series,
+        "filmes": botao_filmes,
+        "explorar": botao_explorar,
+        "perfil": botao_perfil if not is_admin else None,
+        "admin": botao_perfil if is_admin else None,
+    }
+
+    for frame, botao in botoes.items():
+        if botao:
+            if frame == current_screen:  # Se for o ecrã atual
+                botao.configure(fg_color="#181818")  # Cor para estado selecionado
+            else:  # Outros botões
+                botao.configure(fg_color="transparent")  # Cor normal
+
 
 def atualizar_informacoes_topo():
     """Atualiza a zona de topo com o avatar e o username do utilizador."""
@@ -502,18 +525,24 @@ def atualizar_informacoes_topo():
     image = Image.open(image_path)
     avatar = ctk.CTkImage(image, size=(55, 55))
 
-    avatar_label = ctk.CTkLabel(app, text="", image=avatar)
-    avatar_label.place(x=1100, y=23)
+    if not avatar_label:
+        avatar_label = ctk.CTkLabel(app, text="", image=avatar)
+        avatar_label.place(x=1100, y=23)
+    else:
+        avatar_label.configure(image=avatar)
 
-    label_username_top = ctk.CTkLabel(
-        app,
-        text=username,
-        font=ctk.CTkFont(family="Helvetica", size=16, weight="bold"),
-        anchor="e",
-        text_color="#a3d9c8",
-        width=200
-    )
-    label_username_top.place(x=1075 - 200, y=38)  # x = posição final - largura do label
+    if not label_username_top:
+        label_username_top = ctk.CTkLabel(
+            app,
+            text=username,
+            font=ctk.CTkFont(family="Helvetica", size=16, weight="bold"),
+            anchor="e",
+            text_color="#a3d9c8",
+            width=200
+        )
+        label_username_top.place(x=1075 - 200, y=38)
+    else:
+        label_username_top.configure(text=username)
 
 
 def ecra_series(parent_frame):
@@ -762,11 +791,93 @@ def mostrar_filmes_filtradas():
 
 
 def ecra_explorar(parent_frame):
-    scroll_left = ctk.CTkScrollableFrame(parent_frame, width=460, height=470)
-    scroll_left.place(x=10, y=0)
+    global dados_geral
 
-    scroll_right = ctk.CTkScrollableFrame(parent_frame, width=460, height=470)
-    scroll_right.place(x=520, y=0)
+    # Label do Título
+    label_titulo = ctk.CTkLabel(
+        parent_frame,
+        text="Filmes e Séries",
+        font=("Helvetica", 18, "bold"),
+        fg_color="transparent"
+    )
+    label_titulo.place(x=10, y=0)
+
+    # Frame principal scrollable
+    scroll_frame = ctk.CTkScrollableFrame(parent_frame, width=960, height=450)
+    scroll_frame.place(x=10, y=50)
+
+    # Filtros e pesquisa
+    filtro_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
+    filtro_frame.place(relx=1.0, y=0, x=-48, anchor="ne")
+
+    generos_possiveis = ["Todos", "Aventura", "Fantasia", "Drama", "Romance", "Ação", "Comédia", "Ficção Científica", "Terror"]
+    filtro_genero = ctk.CTkOptionMenu(filtro_frame, values=generos_possiveis, width=100)
+    filtro_genero.set("Todos")
+    filtro_genero.grid(row=0, column=0, padx=5)
+
+    filtro_ano = ctk.CTkEntry(filtro_frame, placeholder_text="Ano", width=60)
+    filtro_ano.grid(row=0, column=1, padx=5)
+
+    filtro_titulo = ctk.CTkEntry(filtro_frame, placeholder_text="Título", width=200)
+    filtro_titulo.grid(row=0, column=2, padx=5)
+
+    botao_filtrar = ctk.CTkButton(
+        filtro_frame,
+        text="Filtrar",
+        width=80,
+        command=lambda: aplicar_filtro_filmes_series(
+            filtro_genero.get(),
+            filtro_ano.get(),
+            filtro_titulo.get(),
+            scroll_frame
+        )
+    )
+    botao_filtrar.grid(row=0, column=3, padx=5)
+
+    # Mostrar todos os dados inicialmente
+    mostrar_filmes_series(scroll_frame)
+
+def aplicar_filtro_filmes_series(genero, ano, titulo, parent_frame):
+    """
+    Aplica os filtros de género, ano e título à lista de filmes e séries.
+    """
+    global dados_geral
+
+    # Filtrar dados com base nos critérios
+    lista_filtrada = []
+    for item in dados_geral:
+        if genero != "Todos" and item["genero"] != genero:
+            continue
+        if ano.strip():
+            try:
+                ano_int = int(ano.strip())
+                ano_lancamento = int(item["data_lancamento"].split("/")[-1])
+                if ano_lancamento != ano_int:
+                    continue
+            except ValueError:
+                print(f"Ano inválido: {ano}")
+                continue
+        if titulo.strip() and titulo.lower() not in item["titulo"].lower():
+            continue
+        lista_filtrada.append(item)
+
+    # Limpar frame antes de adicionar novos cards
+    for child in parent_frame.winfo_children():
+        child.destroy()
+
+    criar_cards(lista_filtrada, parent_frame)
+
+def mostrar_filmes_series(parent_frame):
+    """
+    Exibe todos os filmes e séries num único frame scrollable.
+    """
+    global dados_geral
+
+    # Limpar frame antes de adicionar novos cards
+    for child in parent_frame.winfo_children():
+        child.destroy()
+
+    criar_cards(dados_geral, parent_frame)
 
 
 def ecra_perfil(parent_frame):
@@ -1134,7 +1245,6 @@ def ecra_inserir():
 
     def escolher_data():
         """Abre um date picker e atualiza o label com a data selecionada."""
-        from tkcalendar import Calendar
 
         date_picker = tk.Toplevel(app)
         date_picker.title("Escolher Data")
@@ -1285,20 +1395,14 @@ def clear_window():
 
 
 def update_active_screen(frame_name):
-    global avatar_label, label_username_top
+    global current_screen, frames, selected_button
 
     if frame_name in frames:
-        if frame_name in ["perfil", "admin", "inserir"]:
-            if avatar_label:
-                avatar_label.place_forget()
-            if label_username_top:
-                label_username_top.place_forget()
-        else:
-            if avatar_label:
-                avatar_label.place(x=1100, y=23)
-            if label_username_top:
-                label_username_top.place(x=1000, y=38)
+        # Atualiza o estado do botão selecionado
+        current_screen = frame_name
+        atualizar_botoes_menu()
 
+        # Levanta o frame desejado
         frames[frame_name].tkraise()
     else:
         print(f"AVISO: O frame '{frame_name}' não foi encontrado em frames.")
@@ -1392,7 +1496,7 @@ def criar_cards(lista, parent_frame):
             card_frame.grid(row=linha, column=coluna, padx=5, pady=5)
 
             def on_click(event):
-                mostrar_detalhes_filme(movie_name, sinopse, trailer, rating, year, duracao)
+                mostrar_detalhes_filme(movie_name)
 
             card_frame.bind("<Button-1>", on_click)
             card_label.bind("<Button-1>", on_click)
@@ -1401,46 +1505,399 @@ def criar_cards(lista, parent_frame):
             print(f"Erro ao carregar a imagem: {cat_img_path}")
 
 
-def mostrar_detalhes_filme(movie_name, sinopse, trailer, rating, year, duracao):
-    """Mostra detalhes do item num frame sobreposto (pop-up)."""
-    detalhes_frame = ctk.CTkFrame(app, width=800, height=500, corner_radius=6, fg_color="#4f8377")
-    detalhes_frame.place(relx=0.5, rely=0.5, anchor="center")
+def mostrar_detalhes_filme(movie_name):
 
-    botao_fechar = ctk.CTkButton(
-        detalhes_frame,
-        text="X",
-        width=30,
-        command=detalhes_frame.destroy,
-        fg_color="#a3d9c8",
-        text_color="#242424"
-    )
-    botao_fechar.place(x=760, y=10)
+    # 1) Carregar dados do filme/série a partir de dados_geral
+    info = None
+    for d in dados_geral:
+        if d["titulo"] == movie_name:
+            info = d
+            break
+    if not info:
+        CTkMessagebox.CTkMessagebox(
+            title="Erro",
+            message=f"Não encontrei '{movie_name}' em dados_geral!",
+            icon="warning"
+        )
+        return
 
-    titulo = ctk.CTkLabel(
-        detalhes_frame,
-        text=movie_name,
-        font=("Helvetica", 24, "bold"),
-        text_color="#ffffff"
-    )
-    titulo.place(x=20, y=20)
+    # Extraímos os campos
+    data_lancamento = info["data_lancamento"]
+    rating_imdb = info["rating"]
+    trailer_url = info["trailer"]
+    sinopse = info["sinopse"]
+    duracao = info["duracao"]
+    genero = info["genero"]
+    img_path = info["img_path"]
+
+    # 2) Criar Toplevel + Scroll
+    detalhes_modal = ctk.CTkToplevel()
+    detalhes_modal.title(movie_name)  # aparece na barra de título
+    detalhes_modal.iconbitmap(".//images//hoot.ico")
+    # Ajustar posição e tamanho se quiseres
+    w_modal, h_modal = 800, 600
+    detalhes_modal.geometry(f"{w_modal}x{h_modal}+400+80")  # ex. pos 400,80
+    detalhes_modal.resizable(False, False)
+    detalhes_modal.attributes("-topmost", True)
+    scroll_main = ctk.CTkScrollableFrame(detalhes_modal, width=w_modal, height=h_modal)
+    scroll_main.pack(fill="both", expand=True)
+
+    # -------------------------------------------------------------------------
+    # 3) Ficheiro de métricas: user;rating;gostou;partilhou;comentario
+    metricas_path = os.path.join(root_dir, "files", "catalog", "metricas", f"{movie_name}.txt")
+    os.makedirs(os.path.dirname(metricas_path), exist_ok=True)
+
+    # Funções auxiliares para ler/gravar dados
+    def load_all_userdata():
+        """
+        Lê o ficheiro e devolve um dicionário: {user: {"rating": int, "gostou": bool, "partilhou": bool, "comentario": str}}
+        Se não existir ou estiver vazio, retorna {}.
+        """
+        if not os.path.isfile(metricas_path):
+            # cria vazio
+            with open(metricas_path, "w", encoding="utf-8"):
+                pass
+            return {}
+
+        data = {}
+        with open(metricas_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.split(";")
+                # Formato: user;rating;gostou;partilhou;coment
+                # rating = str ou vazio -> converter p/ int se der
+                # gostou/partilhou = "True" ou ""
+                # coment = resto
+                if len(parts) < 5:
+                    continue
+                user_ = parts[0]
+                rating_ = parts[1]
+                gostou_ = parts[2]
+                partilhou_ = parts[3]
+                coment_ = parts[4]
+
+                try:
+                    rating_int = int(rating_) if rating_ else 0
+                except:
+                    rating_int = 0
+                data[user_] = {
+                    "rating": rating_int,
+                    "gostou": (gostou_ == "True"),
+                    "partilhou": (partilhou_ == "True"),
+                    "comentario": coment_
+                }
+        return data
+
+    def save_all_userdata(d):
+        """
+        Grava o dicionário 'd' no ficheiro, no formato:
+          user;rating;gostou;partilhou;comentario
+        """
+        with open(metricas_path, "w", encoding="utf-8") as f:
+            for user_, vals in d.items():
+                linha = (
+                    f"{user_};"
+                    f"{vals['rating'] if vals['rating'] else ''};"
+                    f"{'True' if vals['gostou'] else ''};"
+                    f"{'True' if vals['partilhou'] else ''};"
+                    f"{vals['comentario']}"
+                )
+                f.write(linha + "\n")
+
+    all_data = load_all_userdata()
+
+    # Se ainda não existir nada para o user atual, inicializa
+    if username not in all_data:
+        all_data[username] = {"rating": 0, "gostou": False, "partilhou": False, "comentario": ""}
+
+    # Facilita o acesso
+    user_data = all_data[username]
+
+    # -------------------------------------------------------------------------
+    # 4) Zona superior: Imagem + Info (sinopse, genero...)
+    top_frame = ctk.CTkFrame(scroll_main)
+    top_frame.pack(fill="x", padx=10, pady=10)
+
+    # 4.1) Imagem
+    frame_img = ctk.CTkFrame(top_frame)
+    frame_img.pack(side="left", padx=10)
+
+    try:
+        if os.path.exists(img_path):
+            pil_img = Image.open(img_path).resize((220, 320), Image.Resampling.LANCZOS)
+            ctk_img = ctk.CTkImage(pil_img, size=(220, 320))
+            lbl_img = ctk.CTkLabel(frame_img, image=ctk_img, text="")
+            lbl_img.pack()
+        else:
+            ctk.CTkLabel(frame_img, text="(Imagem indisponível)").pack(pady=20)
+    except Exception as e:
+        print(f"Erro ao carregar imagem: {e}")
+        ctk.CTkLabel(frame_img, text="(Falha ao carregar imagem)").pack(pady=20)
+
+    # 4.2) Info textual
+    frame_info = ctk.CTkFrame(top_frame)
+    frame_info.pack(side="left", fill="both", expand=True, padx=10)
+
 
     lbl_sinopse = ctk.CTkLabel(
-        detalhes_frame,
-        text=sinopse,
-        font=("Helvetica", 12),
-        text_color="#ffffff",
-        wraplength=700
+    frame_info, 
+    text=f"**Sinopse**: {sinopse}", 
+    font=("Helvetica", 12),
+    anchor="w",
+    justify="left", 
+    wraplength=450
     )
-    lbl_sinopse.place(x=20, y=60)
+    lbl_sinopse.pack(anchor="nw", padx=10)
 
-    info = ctk.CTkLabel(
-        detalhes_frame,
-        text=f"Rating: {rating} | Ano: {year} | Duração: {duracao} min",
-        font=("Helvetica", 12, "bold"),
-        text_color="#ffffff"
+    lbl_genero = ctk.CTkLabel(frame_info, text="Género:", font=("Helvetica", 12, "bold"))
+    lbl_genero.pack(anchor="nw", padx=10)
+    lbl_genero_val = ctk.CTkLabel(frame_info, text=genero)
+    lbl_genero_val.pack(anchor="nw", pady=(0, 10), padx=10)
+
+    lbl_dur = ctk.CTkLabel(frame_info, text="Duração:", font=("Helvetica", 12, "bold"))
+    lbl_dur.pack(anchor="nw", padx=10)
+    lbl_dur_val = ctk.CTkLabel(frame_info, text=duracao)
+    lbl_dur_val.pack(anchor="nw", pady=(0, 10), padx=10)
+
+    lbl_rat = ctk.CTkLabel(frame_info, text="Rating IMDB:", font=("Helvetica", 12, "bold"))
+    lbl_rat.pack(anchor="nw", padx=10)
+    lbl_rat_val = ctk.CTkLabel(frame_info, text=str(rating_imdb))
+    lbl_rat_val.pack(anchor="nw", pady=(0, 10), padx=10)
+
+    lbl_dl = ctk.CTkLabel(frame_info, text="Data de Lançamento:", font=("Helvetica", 12, "bold"))
+    lbl_dl.pack(anchor="nw", padx=10)
+    lbl_dl_val = ctk.CTkLabel(frame_info, text=data_lancamento)
+    lbl_dl_val.pack(anchor="nw", pady=(0, 10), padx=10)
+
+    # -------------------------------------------------------------------------
+    # 5) Botões: Visto / Para Ver / Trailer
+    actions_frame = ctk.CTkFrame(scroll_main)
+    actions_frame.pack(fill="x", padx=10, pady=5)
+
+    def marcar_estado(novo_estado):
+        """
+        Guarda em .//files//users//<username>//metricas//metricas.txt:
+          <movie_name>;<visto ou para_ver>
+        """
+        user_metric_path = os.path.join(root_dir, "files", "users", username, "metricas", "metricas.txt")
+        os.makedirs(os.path.dirname(user_metric_path), exist_ok=True)
+
+        linhas = []
+        if os.path.exists(user_metric_path):
+            with open(user_metric_path, "r", encoding="utf-8") as f:
+                linhas = f.readlines()
+
+        filtradas = []
+        for ln in linhas:
+            ln_strip = ln.strip()
+            if not ln_strip:
+                continue
+            partes = ln_strip.split(";")
+            if len(partes) >= 2 and partes[0] == movie_name:
+                # ignora para sobrescrever
+                continue
+            filtradas.append(ln_strip)
+        filtradas.append(f"{movie_name};{novo_estado}")
+
+        with open(user_metric_path, "w", encoding="utf-8") as f:
+            for l in filtradas:
+                f.write(l + "\n")
+
+        CTkMessagebox.CTkMessagebox(
+            title="Estado atualizado",
+            message=f"'{movie_name}' -> {novo_estado}",
+            icon="check"
+        )
+
+    btn_visto = ctk.CTkButton(actions_frame, text="Marcar como Visto", command=lambda: marcar_estado("visto"))
+    btn_visto.pack(side="left", padx=5)
+
+    btn_paraver = ctk.CTkButton(actions_frame, text="Marcar para Ver", command=lambda: marcar_estado("para_ver"))
+    btn_paraver.pack(side="left", padx=5)
+
+    def abrir_trailer():
+        if trailer_url and trailer_url.startswith("http"):
+            webbrowser.open(trailer_url)
+        else:
+            CTkMessagebox.CTkMessagebox(
+                title="Trailer indisponível",
+                message="URL inválido ou não disponível.",
+                icon="warning"
+            )
+
+    btn_trailer = ctk.CTkButton(actions_frame, text="Trailer", fg_color="#F2C94C", text_color="black", command=abrir_trailer)
+    btn_trailer.pack(side="left", padx=5)
+
+    # -------------------------------------------------------------------------
+    # 6) Avaliação (1-5), Gostar, Partilhar => atualiza imediatamente no ficheiro
+    rating_frame = ctk.CTkFrame(scroll_main)
+    rating_frame.pack(fill="x", padx=10, pady=5)
+
+    ctk.CTkLabel(rating_frame, text="Avaliação (1-5): ", font=("Helvetica", 12, "bold")).pack(side="left", padx=5)
+
+    estrelas_btns = []
+    def set_rating(n):
+        # atualiza visual
+        for i in range(5):
+            if i < n:
+                estrelas_btns[i].configure(fg_color="yellow")
+            else:
+                estrelas_btns[i].configure(fg_color="gray")
+
+        # Atualiza dicionário e salva em ficheiro
+        user_data["rating"] = n
+        all_data[username] = user_data
+        save_all_userdata(all_data)
+
+        # Não precisas de messagebox aqui se quiseres atualização silenciosa
+
+    # Criar 5 "estrelas"
+    current_rating = user_data["rating"]  # rating guardado
+    for i in range(5):
+        b = ctk.CTkButton(rating_frame, text="★", width=40, height=40, fg_color="gray",
+                          command=lambda x=i: set_rating(x + 1))
+        b.pack(side="left", padx=2)
+        estrelas_btns.append(b)
+
+    # Ao abrir, pintamos de amarelo até current_rating
+    set_rating(current_rating)
+
+    # Botões Gostar / Partilhar
+    gostou_var = tk.BooleanVar(value=user_data["gostou"])
+    partilhou_var = tk.BooleanVar(value=user_data["partilhou"])
+
+    def toggle_gostou():
+        new_val = not gostou_var.get()
+        gostou_var.set(new_val)
+        btn_gostar.configure(fg_color=("green" if new_val else "gray"))
+        # Atualiza no ficheiro
+        user_data["gostou"] = new_val
+        all_data[username] = user_data
+        save_all_userdata(all_data)
+
+    def toggle_partilhou():
+        new_val = not partilhou_var.get()
+        partilhou_var.set(new_val)
+        btn_partilhar.configure(fg_color=("green" if new_val else "gray"))
+        # Atualiza no ficheiro
+        user_data["partilhou"] = new_val
+        all_data[username] = user_data
+        save_all_userdata(all_data)
+
+    btn_gostar = ctk.CTkButton(
+        rating_frame, text="Gostar",
+        width=40, height=40,
+        fg_color=("green" if gostou_var.get() else "gray"),
+        command=toggle_gostou
     )
-    info.place(x=20, y=460)
+    btn_gostar.pack(side="left", padx=5)
 
+    btn_partilhar = ctk.CTkButton(
+        rating_frame, text="Partilhar",
+        width=40, height=40,
+        fg_color=("green" if partilhou_var.get() else "gray"),
+        command=toggle_partilhou
+    )
+    btn_partilhar.pack(side="left", padx=5)
+
+    # -------------------------------------------------------------------------
+    # 7) Comentários
+    comments_frame = ctk.CTkFrame(scroll_main)
+    comments_frame.pack(fill="x", padx=10, pady=5)
+
+    # Campo de comentário + Submeter ao lado
+    ctk.CTkLabel(comments_frame, text="Comentário:", font=("Helvetica", 12, "bold")).pack(anchor="nw", pady=(10, 5))
+
+    comment_line = ctk.CTkFrame(comments_frame)
+    comment_line.pack(anchor="nw", pady=(0, 10))
+
+    comment_entry = ctk.CTkEntry(comment_line, width=600)
+    comment_entry.pack(side="left", padx=(0,5))
+
+    # Se quiseres preencher a entry com o que já estava guardado, podes:
+    if user_data["comentario"]:
+        comment_entry.insert(0, user_data["comentario"])
+
+    # Submeter => atualiza a linha do user
+    def submeter_comentario():
+        texto = comment_entry.get().strip()
+        user_data["comentario"] = texto
+        all_data[username] = user_data
+        save_all_userdata(all_data)
+
+        CTkMessagebox.CTkMessagebox(
+            title="Comentário",
+            message="O seu comentário foi registado/atualizado.",
+            icon="check"
+        )
+        exibir_comentarios()  # recarrega a listagem
+
+    btn_submeter = ctk.CTkButton(comment_line, text="Submeter", command=submeter_comentario)
+    btn_submeter.pack(side="left")
+
+    # 7.1) Listagem de todos comentários (avatar - username - comentario)
+    list_frame = ctk.CTkScrollableFrame(comments_frame, width=760, height=250)
+    list_frame.pack(fill="both", expand=True)
+
+    def get_user_avatar(u):
+        """
+        Retorna um ctk.CTkImage (40x40) do avatar do user ou default se não existir.
+        """
+        avatar_path = os.path.join(root_dir, "files", "users", u, "profile_picture.png")
+        if not os.path.isfile(avatar_path):
+            avatar_path = "./images/default_avatar.png"  # Ajusta ao teu default
+
+        try:
+            pil_ava = Image.open(avatar_path).resize((40, 40), Image.Resampling.LANCZOS)
+            return ctk.CTkImage(pil_ava, size=(40, 40))
+        except:
+            # se der erro, devolve None ou um avatar default
+            return None
+
+    def exibir_comentarios():
+        # Limpar tudo
+        for widget in list_frame.winfo_children():
+            widget.destroy()
+
+        # Recarrega do ficheiro para ter a info atual
+        d = load_all_userdata()
+        if not d:
+            ctk.CTkLabel(list_frame, text="Ainda sem comentários. Seja o primeiro!").pack(padx=5, pady=5)
+            return
+
+        # Exibir cada user
+        for user_, vals in d.items():
+            coment_ = vals["comentario"]
+            # Se não tiver comentário, podes decidir se queres mostrar ou não
+            # Caso queiras exibir só se tiver algo no coment_:
+            if not coment_.strip():
+                continue
+
+            # Container horizontal
+            comment_container = ctk.CTkFrame(list_frame)
+            comment_container.pack(fill="x", anchor="w", pady=5, padx=5)
+
+            # Avatar
+            ava_img = get_user_avatar(user_)
+            if ava_img:
+                lbl_ava = ctk.CTkLabel(comment_container, image=ava_img, text="")
+            else:
+                lbl_ava = ctk.CTkLabel(comment_container, text="(no avatar)")
+
+            lbl_ava.pack(side="left", padx=5)
+
+            # Texto: Username + Comentário
+            text_label = ctk.CTkLabel(
+                comment_container,
+                text=f"{user_} - {coment_}",
+                wraplength=500,
+                justify="left"
+            )
+            text_label.pack(side="left", padx=5)
+
+    exibir_comentarios()
 
 
 def criar_lista_modal():
