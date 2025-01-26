@@ -404,35 +404,21 @@ def set_admin(username):
     Marca o estado do usuário como 'admin' (ou define um flag).
     Necessário ter algo como userinfo.txt em users/<username>/
     """
-    users_dir = os.path.join(".", "files", "users")
-    user_folder = os.path.join(users_dir, username)
-
-    if not os.path.exists(user_folder):
-        print(f"Usuário {username} não existe.")
-        return
-
-    userinfo_path = os.path.join(user_folder, "userinfo.txt")
-    # Se não existir, cria. Se existir, reescreve 'estado=admin'.
-    lines = []
-    found_estado = False
-
-    if os.path.isfile(userinfo_path):
-        with open(userinfo_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-    new_content = []
-    for ln in lines:
-        if ln.strip().startswith("estado="):
-            new_content.append("estado=admin\n")
-            found_estado = True
+    user_list = lerFicheiro(user_db)
+    new_user_list = []
+    for line in user_list:
+        if line!="Username;Password;Email;User/Admin\n":
+            campos = line.split(";")
+            if campos[0] == username:
+                campos[3] = "Admin"
+            new_user_list.append(campos[0]+";"+campos[1]+";"+campos[2]+";"+campos[3]+";"+campos[4])
         else:
-            new_content.append(ln)
+            new_user_list.append(line)
 
-    if not found_estado:
-        new_content.append("estado=admin\n")
-
-    with open(userinfo_path, "w", encoding="utf-8") as f:
-        f.writelines(new_content)
+    file = open(user_db, "w")
+    for line in new_user_list:
+        file.write(line)
+    file.close()
 
     print(f"Usuário {username} promovido a admin.")
 
