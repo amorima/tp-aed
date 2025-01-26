@@ -248,11 +248,11 @@ def sign(user, password, mail, fn_after_sign):
         f.write(f"{user};{password};{mail};User;{data_registo}\n")
 
     #5.1) Criar o profile pic default
-    if not os.path.isdir(f".\\files\\user\\{user}"):
-        os.makedirs(f".\\files\\user\\{user}")
+    if not os.path.isdir(f".\\files\\users\\{user}"):
+        os.makedirs(f".\\files\\users\\{user}")
     
     img = Image.open(".\\images\\default_avatar.png")
-    img.save(f".\\files\\user\\{user}\\profile_pic.png")
+    img.save(f".\\files\\users\\{user}\\profile_picture.png")
 
     # 6) Callback pós-criação
     fn_after_sign()
