@@ -376,7 +376,6 @@ def login_success(user):
 
 def login_fail():
     """Callback de falha de login."""
-    print("Falha de login.")
     ecra_login()
 
 
@@ -1063,13 +1062,23 @@ def ecra_perfil(parent_frame):
     fav_series_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     fav_series_frame.pack(anchor="w", padx=20)
 
-    fav_series_posters = [
-        "./images/departure.png",
-        "./images/from.png",
-        "./images/tieta.png",
-        "./images/o_mundo_dos_casados.png"
-    ]
-    for poster_path in fav_series_posters:
+    # Lê o ficheiro fav_series.txt
+    fav_series_path = os.path.join(user_folder, "fav_series.txt")
+    if os.path.isfile(fav_series_path):
+        with open(fav_series_path, "r", encoding="utf-8") as f:
+            fav_series_titles = [ln.strip() for ln in f if ln.strip()]
+    else:
+        fav_series_titles = []
+
+    # Para cada título favorito, descobrir o img_path no dados_geral
+    fav_series_images = []
+    for title in fav_series_titles:
+        item = next((x for x in dados_geral if x["titulo"] == title), None)
+        if item and os.path.exists(item["img_path"]):
+            fav_series_images.append(item["img_path"])
+
+    # Agora sim, fazes o loop para mostrar os posters
+    for poster_path in fav_series_images:
         try:
             img = Image.open(poster_path).resize((100, 148), Image.Resampling.LANCZOS)
             poster_ctk = ctk.CTkImage(img, size=(100, 148))
@@ -1078,6 +1087,7 @@ def ecra_perfil(parent_frame):
 
         lbl_poster = ctk.CTkLabel(fav_series_frame, text="", image=poster_ctk)
         lbl_poster.pack(side="left", padx=5)
+
 
     movies_label = ctk.CTkLabel(
         scrollable_content_perfil,
@@ -1120,12 +1130,20 @@ def ecra_perfil(parent_frame):
     fav_movies_frame = ctk.CTkFrame(scrollable_content_perfil, fg_color="#242424")
     fav_movies_frame.pack(anchor="w", padx=20)
 
-    fav_movies_posters = [
-        "./images/senhor_aneis.png",
-        "./images/batman_cavaleiro_trevas.png",
-        "./images/a_vida_e_bela.png"
-    ]
-    for poster_path in fav_movies_posters:
+    fav_movies_path = os.path.join(user_folder, "fav_filmes.txt")
+    if os.path.isfile(fav_movies_path):
+        with open(fav_movies_path, "r", encoding="utf-8") as f:
+            fav_movies_titles = [ln.strip() for ln in f if ln.strip()]
+    else:
+        fav_movies_titles = []
+
+    fav_movies_images = []
+    for title in fav_movies_titles:
+        item = next((x for x in dados_geral if x["titulo"] == title), None)
+        if item and os.path.exists(item["img_path"]):
+            fav_movies_images.append(item["img_path"])
+
+    for poster_path in fav_movies_images:
         try:
             img = Image.open(poster_path).resize((100, 148), Image.Resampling.LANCZOS)
             poster_ctk = ctk.CTkImage(img, size=(100, 148))
@@ -1726,9 +1744,129 @@ def mostrar_detalhes_filme(movie_name):
                 message="URL inválido ou não disponível.",
                 icon="warning"
             )
+    
+    def marcar_favorito():
+        # Pasta do utilizador
+        user_folder = os.path.join(root_dir, "files", "users", username)
+        if not os.path.exists(user_folder):
+            os.makedirs(user_folder)
+
+        # Escolher ficheiro de favoritos de acordo com o tipo
+        if info["tipo"] == "serie":
+            fav_file_path = os.path.join(user_folder, "fav_series.txt")
+        else:
+            fav_file_path = os.path.join(user_folder, "fav_filmes.txt")
+
+        # Lê os favoritos existentes para evitar duplicados
+        favoritos_existentes = []
+        if os.path.isfile(fav_file_path):
+            with open(fav_file_path, "r", encoding="utf-8") as f:
+                favoritos_existentes = [ln.strip() for ln in f if ln.strip()]
+
+        # Se ainda não existir, adiciona
+        if movie_name not in favoritos_existentes:
+            with open(fav_file_path, "a", encoding="utf-8") as f:
+                f.write(movie_name + "\n")
+
+            CTkMessagebox.CTkMessagebox(
+                title="Favorito",
+                message=f"'{movie_name}' foi adicionado aos favoritos!",
+                icon="check"
+            )
+        else:
+            CTkMessagebox.CTkMessagebox(
+                title="Favorito",
+                message=f"'{movie_name}' já está nos favoritos!",
+                icon="info"
+            )
+
 
     btn_trailer = ctk.CTkButton(actions_frame, text="Trailer", fg_color="#F2C94C", text_color="black", command=abrir_trailer)
     btn_trailer.pack(side="left", padx=5)
+
+    btn_favorito = ctk.CTkButton(
+    actions_frame, 
+    text="Marcar como Favorito", 
+    fg_color="#F2C94C", 
+    text_color="black", 
+    command=marcar_favorito
+    )
+    btn_favorito.pack(side="left", padx=5)
+
+    # Lê as listas do utilizador
+    lists_folder = os.path.join(root_dir, "files", "users", username, "listas")
+    if not os.path.exists(lists_folder):
+        os.makedirs(lists_folder)
+
+    listas = [
+        f[:-4] for f in os.listdir(lists_folder)
+        if f.endswith(".txt")
+    ]
+    if not listas:
+        listas = ["(Nenhuma lista)"]  # opcional, para não ficar vazio
+
+    # Cria o OptionMenu
+    lista_var = tk.StringVar(value=listas[0])  # valor inicial
+    dropdown_listas = ctk.CTkOptionMenu(
+        actions_frame,
+        values=listas,
+        variable=lista_var,
+        width=150
+    )
+    dropdown_listas.pack(fill="x", padx=10, pady=5)
+
+    def adicionar_a_lista():
+        lista_escolhida = lista_var.get()
+        if lista_escolhida == "(Nenhuma lista)":
+            CTkMessagebox.CTkMessagebox(
+                title="Listas",
+                message="Não existe nenhuma lista criada. Crie primeiro na área pessoal.",
+                icon="warning"
+            )
+            return
+
+        # Caminho do ficheiro da lista
+        list_path = os.path.join(lists_folder, lista_escolhida + ".txt")
+        if not os.path.isfile(list_path):
+            # caso o utilizador apagou a lista manualmente
+            CTkMessagebox.CTkMessagebox(
+                title="Listas",
+                message="A lista escolhida já não existe!",
+                icon="warning"
+            )
+            return
+
+        # Ler o que já existe
+        with open(list_path, "r", encoding="utf-8") as f:
+            conteudo = [ln.strip() for ln in f if ln.strip()]
+
+        # Ver se já está lá
+        if movie_name not in conteudo:
+            with open(list_path, "a", encoding="utf-8") as f:
+                f.write(movie_name + "\n")
+
+            CTkMessagebox.CTkMessagebox(
+                title="Listas",
+                message=f"'{movie_name}' adicionado à lista '{lista_escolhida}'.",
+                icon="check"
+            )
+        else:
+            CTkMessagebox.CTkMessagebox(
+                title="Listas",
+                message=f"'{movie_name}' já está na lista '{lista_escolhida}'.",
+                icon="info"
+            )
+
+    btn_add_lista = ctk.CTkButton(
+        actions_frame,
+        text="Adicionar à Lista",
+        fg_color="#4F8377",
+        command=adicionar_a_lista
+    )
+    btn_add_lista.pack(side="left", padx=5)
+
+
+
 
     # -------------------------------------------------------------------------
     # 6) Avaliação (1-5), Gostar, Partilhar => atualiza imediatamente no ficheiro
