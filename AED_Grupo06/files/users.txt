@@ -2,3 +2,5 @@ Username;Password;Email;User/Admin
 ANTONIO;1;1;User;2025-01-26 16:22:58
 ANTONIO ADMIN;2;2;Admin;2025-01-26 16:57:19
 AMORIMA;AMORIMA111!!!;AMORIMA@;User;2025-01-26 16:42:01
+Gabriel;Tester#2;gabriel@gmail.com;User;2025-01-26 17:24:55
+UserMAN;123qweASD#;man@mail.com;User;2025-01-26 17:32:13

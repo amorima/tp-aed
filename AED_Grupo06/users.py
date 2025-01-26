@@ -1,6 +1,7 @@
 import os
 import datetime
 import CTkMessagebox
+from PIL import Image
 
 user_db = ".\\files\\users.txt"
 user_ativo = None
@@ -245,6 +246,13 @@ def sign(user, password, mail, fn_after_sign):
     data_registo = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(user_db, "a", encoding="utf-8") as f:
         f.write(f"{user};{password};{mail};User;{data_registo}\n")
+
+    #5.1) Criar o profile pic default
+    if not os.path.isdir(f".\\files\\user\\{user}"):
+        os.makedirs(f".\\files\\user\\{user}")
+    
+    img = Image.open(".\\images\\default_avatar.png")
+    img.save(f".\\files\\user\\{user}\\profile_pic.png")
 
     # 6) Callback pós-criação
     fn_after_sign()
