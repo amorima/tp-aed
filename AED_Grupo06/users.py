@@ -478,49 +478,15 @@ def get_all_users():
     para descobrir o 'username', 'email' e 'estado'.
     Retorna lista de dicionários: [{"username":..., "email":..., "estado":...}, ...]
     """
-    users_dir = os.path.join(".", "files", "users")
-    lista_users = []
+    user_list = lerFicheiro(user_db)
+    new_user_list = []
 
-    if not os.path.exists(users_dir):
-        return lista_users  # Se não existir, lista vazia
+    for line in user_list:
+        if line != "Username;Password;Email;User/Admin\n":
+            campos = line.split(";")
+            new_user_list.append({"username": campos[0], "email": campos[2], "estado": campos[3]})
 
-    for pasta in os.listdir(users_dir):
-        caminho_pasta = os.path.join(users_dir, pasta)
-        if os.path.isdir(caminho_pasta):
-            # Tenta ler userinfo.txt
-            user_info_path = os.path.join(caminho_pasta, "userinfo.txt")
-            username_ = pasta  # se não achar nada, ao menos o nome da pasta
-            email_ = ""
-            estado_ = "ativo"  # default
-
-            if os.path.isfile(user_info_path):
-                # Exemplo de formato do userinfo.txt:
-                # username=joao
-                # email=joao@email.com
-                # estado=ativo
-                with open(user_info_path, "r", encoding="utf-8") as f:
-                    for linha in f:
-                        linha = linha.strip()
-                        if "=" in linha:
-                            chave, valor = linha.split("=", 1)
-                            chave = chave.strip()
-                            valor = valor.strip()
-                            if chave == "username":
-                                username_ = valor
-                            elif chave == "email":
-                                email_ = valor
-                            elif chave == "estado":
-                                estado_ = valor
-
-            lista_users.append({
-                "username": username_,
-                "email": email_,
-                "estado": estado_
-            })
-
-    # Se quiser ordenar, ex: por username e depois email:
-    lista_users.sort(key=lambda u: (u["username"].lower(), u["email"].lower(), u["estado"].lower()))
-    return lista_users
+    return new_user_list
 
 # ------------------------------------------
 # Favoritos
