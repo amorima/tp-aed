@@ -1,46 +1,50 @@
 import os
 import datetime
+import shutil
 import CTkMessagebox
 from PIL import Image
 
-user_db = ".\\files\\users.txt"
-user_ativo = None
+# ------------------------------------------------------------------------
+#                VARIÁVEIS GLOBAIS (BASE DE DADOS / FICHEIROS)
+# ------------------------------------------------------------------------
+user_db = ".\\files\\users.txt"    # Caminho para o ficheiro onde estão guardados os utilizadores
+user_ativo = None                  # Para armazenar o user atualmente autenticado (se aplicável)
 
-# ------------------------------------------
-# Ler Ficheiro
-# ------------------------------------------
+# ------------------------------------------------------------------------
+#                   FUNÇÕES DE SUPORTE / UTILITÁRIAS
+# ------------------------------------------------------------------------
 def lerFicheiro(ficheiro):
+    """
+    Lê um ficheiro e retorna a lista de linhas (strings).
+    Se o ficheiro não existir, retorna uma lista vazia.
+    """
     lista = []
     if os.path.exists(ficheiro):
         with open(ficheiro, "r", encoding="utf-8") as file:
             lista = file.readlines()
     return lista
 
-# ------------------------------------------
-# Checker para Password
-# ------------------------------------------
 def passwordChecker(password):
     """
-    Password deve ter:
-    - Pelo menos 8 caracteres
-    - 1 letra maiúscula
-    - 1 número
-    - 1 caracter especial
-    - NÃO pode ter ponto e vírgula (;)
+    Verifica se a 'password' cumpre os seguintes requisitos:
+      - Pelo menos 8 caracteres
+      - Pelo menos 1 letra maiúscula
+      - Pelo menos 1 dígito
+      - Pelo menos 1 caracter especial
+      - NÃO pode conter ponto e vírgula (';')
+    Se todos os requisitos forem cumpridos, retorna "True".
+    Caso contrário, retorna uma string com a descrição do erro.
     """
     if len(password) < 8:
         return "-Deve conter pelo menos 8 caracteres\n"
 
-    capitalUsed = any(c.isupper() for c in password)
-    if not capitalUsed:
+    if not any(c.isupper() for c in password):
         return "-Deve conter pelo menos uma maiúscula\n"
 
-    numberUsed = any(c.isdigit() for c in password)
-    if not numberUsed:
+    if not any(c.isdigit() for c in password):
         return "-Deve conter pelo menos um número\n"
 
-    specialUsed = any(not c.isalnum() for c in password)
-    if not specialUsed:
+    if not any(not c.isalnum() for c in password):
         return "-Deve conter pelo menos um caracter especial\n"
 
     if ";" in password:
@@ -48,14 +52,12 @@ def passwordChecker(password):
 
     return "True"
 
-# ------------------------------------------
-# Checker para Email
-# ------------------------------------------
 def emailChecker(email):
     """
-    - Email deve conter '@'
-    - Não pode ter ';'
-    Retorna "True" se válido, caso contrário, devolve a mensagem de erro.
+    Verifica se o 'email':
+      - Contém '@'
+      - Não contém ponto e vírgula (';')
+    Retorna "True" se for válido, caso contrário, retorna a descrição do erro.
     """
     if ";" in email:
         return "-Email não pode conter ponto e vírgula (;)\n"
@@ -63,31 +65,29 @@ def emailChecker(email):
         return "-Email deve conter '@'\n"
     return "True"
 
-# ------------------------------------------
-# Obter dados de um utilizador (by Email)
-# ------------------------------------------
+# ------------------------------------------------------------------------
+#               OBTENÇÃO DE DADOS DE UTILIZADORES
+# ------------------------------------------------------------------------
 def get_user_data_by_email(email):
     """
-    Retorna uma tupla (username, password, email, role, data)
-    ou None se não existir um utilizador com esse email.
+    Tenta localizar o utilizador pelo campo 'email' no ficheiro user_db.
+    O ficheiro tem 5 campos: Username;Password;Email;Role;Data
+    Retorna uma tupla (username, password, email, role, data) se encontrar,
+    ou None se não encontrar.
     """
     userList = lerFicheiro(user_db)
     for line in userList:
         campos = line.strip().split(";")
         if len(campos) < 5:
-            # Linha inválida ou com formatação antiga
             continue
-        # campos = [username, password, email, role, data]
+        # campos = [username, password, email, role, data_registo]
         if campos[2] == email:
             return campos[0], campos[1], campos[2], campos[3], campos[4]
     return None
 
-# ------------------------------------------
-# Verificar se user é Admin
-# ------------------------------------------
 def is_admin(username):
     """
-    Verifica se um determinado 'username' tem papel Admin.
+    Verifica se um determinado 'username' tem papel (role) "admin" no ficheiro user_db.
     """
     userList = lerFicheiro(user_db)
     for line in userList:
@@ -98,14 +98,34 @@ def is_admin(username):
             return campos[3].strip().lower() == "admin"
     return False
 
-# ------------------------------------------
-# Update Login Date
-# ------------------------------------------
+def get_all_users():
+    """
+    Lê o ficheiro user_db e retorna uma lista de dicionários contendo:
+      [{"username":..., "email":..., "estado":...}, ...]
+    Aqui, "estado" é o campo role (User ou Admin). Se existirem mais campos, ajusta conforme.
+    """
+    user_list = lerFicheiro(user_db)
+    new_user_list = []
 
+    for line in user_list:
+        # Ignora possivelmente a linha de cabeçalho, se existir
+        if line != "Username;Password;Email;User/Admin\n":
+            campos = line.split(";")
+            if len(campos) >= 4:
+                new_user_list.append({
+                    "username": campos[0],
+                    "email": campos[2],
+                    "estado": campos[3]
+                })
+    return new_user_list
+
+# ------------------------------------------------------------------------
+#               ATUALIZAÇÃO / MODIFICAÇÃO DE DADOS
+# ------------------------------------------------------------------------
 def update_login_date(email):
     """
-    Atualiza a data de registo (5º campo) para a data/hora atual,
-    localizando o user pelo email.
+    Atualiza a data/hora do último login (5º campo do ficheiro user_db),
+    para o utilizador identificado pelo 'email'.
     """
     current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     userList = lerFicheiro(user_db)
@@ -114,30 +134,35 @@ def update_login_date(email):
     for line in userList:
         campos = line.strip().split(";")
         if len(campos) < 5:
-            # Mantém linhas mal-formadas (ou antigas), ou podes ignorar/descartar
+            # Mantém linhas mal-formadas
             updated_user_db.append(line)
             continue
 
-        # Se for o user que queremos (mesmo email), altera o 5º campo
         if campos[2] == email:
+            # Atualiza apenas o 5º campo
             campos[4] = current_date
             updated_line = ";".join(campos) + "\n"
             updated_user_db.append(updated_line)
         else:
-            # Caso não seja o user que procuramos, mantém a linha original
             if not line.endswith("\n"):
                 line += "\n"
             updated_user_db.append(line)
 
-    # Reescreve o ficheiro
     with open(user_db, "w", encoding="utf-8") as f:
         for line in updated_user_db:
             f.write(line)
 
-# ------------------------------------------
-# Log In
-# ------------------------------------------
+# ------------------------------------------------------------------------
+#                       OPERAÇÕES DE LOGIN/REGISTO
+# ------------------------------------------------------------------------
 def logIn(password, mail, fn_after_login, fn_close_login):
+    """
+    Tenta fazer login com (password, mail).
+    Se as credenciais estiverem corretas, chama:
+      - fn_close_login()  (para fechar o ecrã de login)
+      - fn_after_login(username)  (passa o username)
+    Caso falhe, mostra a mensagem de erro.
+    """
     global user_ativo, username
     user_ativo = None
 
@@ -146,15 +171,10 @@ def logIn(password, mail, fn_after_login, fn_close_login):
         # user_data -> (username, db_password, db_email, role, db_date)
         username, db_password, db_email, role, db_date = user_data
         if password == db_password:
-            # Credenciais corretas
             user_ativo = username
-
-            # Atualiza a data para a data/hora atual
             update_login_date(mail)
-
-            # Chamamos as funções callback
-            fn_close_login()
-            fn_after_login(username)
+            fn_close_login()         # callback para fechar ecrã de login
+            fn_after_login(username) # callback pós-login
         else:
             CTkMessagebox.CTkMessagebox(
                 title="LogIn",
@@ -170,16 +190,13 @@ def logIn(password, mail, fn_after_login, fn_close_login):
             option_1="Ok"
         )
 
-# ------------------------------------------
-# Sign / Criar Conta
-# ------------------------------------------
 def sign(user, password, mail, fn_after_sign):
     """
     Cria um novo utilizador no ficheiro user_db.
-    Formato (agora com 5 campos):
-        Username;Password;Email;Role;Data
+    Estrutura do registo: Username;Password;Email;Role;Data
+    Role por defeito: "User"
     """
-    # 1) Valida password
+    # 1) Validar password
     validPassword = passwordChecker(password)
     if validPassword != "True":
         CTkMessagebox.CTkMessagebox(
@@ -190,7 +207,7 @@ def sign(user, password, mail, fn_after_sign):
         )
         return
 
-    # 2) Valida mail
+    # 2) Validar email
     validMail = emailChecker(mail)
     if validMail != "True":
         CTkMessagebox.CTkMessagebox(
@@ -201,7 +218,7 @@ def sign(user, password, mail, fn_after_sign):
         )
         return
 
-    # 3) Valida username
+    # 3) Validar username
     if len(user) < 4:
         CTkMessagebox.CTkMessagebox(
             title="Sign in",
@@ -210,6 +227,7 @@ def sign(user, password, mail, fn_after_sign):
             option_1="Ok"
         )
         return
+
     if ";" in user:
         CTkMessagebox.CTkMessagebox(
             title="Sign in",
@@ -219,7 +237,7 @@ def sign(user, password, mail, fn_after_sign):
         )
         return
 
-    # 4) Verifica se user ou email já existem
+    # 4) Verificar se já existe (username ou email)
     userList = lerFicheiro(user_db)
     for line in userList:
         campos = line.strip().split(";")
@@ -242,27 +260,30 @@ def sign(user, password, mail, fn_after_sign):
             )
             return
 
-    # 5) Adiciona linha no ficheiro com 5º campo (data do registo)
+    # 5) Criar o registo com data de criação
     data_registo = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(user_db, "a", encoding="utf-8") as f:
         f.write(f"{user};{password};{mail};User;{data_registo}\n")
 
-    #5.1) Criar o profile pic default
-    if not os.path.isdir(f".\\files\\users\\{user}"):
-        os.makedirs(f".\\files\\users\\{user}")
-    
-    img = Image.open(".\\images\\default_avatar.png")
-    img.save(f".\\files\\users\\{user}\\profile_picture.png")
+    # 5.1) Criar a pasta do user e colocar a imagem de avatar default
+    user_folder = f".\\files\\users\\{user}"
+    if not os.path.isdir(user_folder):
+        os.makedirs(user_folder)
 
-    # 6) Callback pós-criação
+    img_default_path = ".\\images\\default_avatar.png"
+    if os.path.isfile(img_default_path):
+        img = Image.open(img_default_path)
+        img.save(os.path.join(user_folder, "profile_picture.png"))
+
+    # 6) Chamar callback pós-criação
     fn_after_sign()
 
-# ------------------------------------------
-# Mudar Username
-# ------------------------------------------
+# ------------------------------------------------------------------------
+#       FUNÇÕES PARA ALTERAR USERNAME / PASSWORD / EMAIL
+# ------------------------------------------------------------------------
 def changeUser(user, password, newUser):
     """
-    Altera o 'username' para 'newUser' (se a password for correta).
+    Altera o username para 'newUser', se (user, password) forem corretos.
     """
     if len(newUser) < 4:
         CTkMessagebox.CTkMessagebox(
@@ -290,17 +311,19 @@ def changeUser(user, password, newUser):
         campos = line.strip().split(";")
         if len(campos) < 4:
             continue
+        # Se for o registo do user/password corretos, atualiza só o primeiro campo
         if campos[0] == user and campos[1] == password:
-            # Encontrou o user e password corretos
-            newUser_db.append(newUser + ";" + campos[1] + ";" + campos[2] + ";" + campos[3] + "\n")
+            newUser_db.append(newUser + ";" + campos[1] + ";" + campos[2] + ";" + campos[3] + ";" + (campos[4] if len(campos) > 4 else "") + "\n")
             changed = True
         else:
-            # Copia a linha sem alterações
+            # Mantém a linha tal como estava
+            if not line.endswith("\n"):
+                line += "\n"
             newUser_db.append(line)
 
     with open(user_db, "w", encoding="utf-8") as file:
-        for line in newUser_db:
-            file.write(line if line.endswith("\n") else (line + "\n"))
+        for l in newUser_db:
+            file.write(l if l.endswith("\n") else (l + "\n"))
 
     if not changed:
         CTkMessagebox.CTkMessagebox(
@@ -310,12 +333,9 @@ def changeUser(user, password, newUser):
             option_1="Ok"
         )
 
-# ------------------------------------------
-# Mudar Password
-# ------------------------------------------
 def changePass(user, oldPassword, newPassword):
     """
-    Altera a password do 'user' (se oldPassword for correta).
+    Altera a password do 'user' (se a oldPassword for correta e a nova password for válida).
     """
     validPassword = passwordChecker(newPassword)
     if validPassword != "True":
@@ -336,14 +356,16 @@ def changePass(user, oldPassword, newPassword):
         if len(campos) < 4:
             continue
         if campos[0] == user and campos[1] == oldPassword:
-            newUser_db.append(campos[0] + ";" + newPassword + ";" + campos[2] + ";" + campos[3] + "\n")
+            newUser_db.append(campos[0] + ";" + newPassword + ";" + campos[2] + ";" + campos[3] + ";" + (campos[4] if len(campos) > 4 else "") + "\n")
             changed = True
         else:
+            if not line.endswith("\n"):
+                line += "\n"
             newUser_db.append(line)
 
     with open(user_db, "w", encoding="utf-8") as file:
-        for line in newUser_db:
-            file.write(line if line.endswith("\n") else (line + "\n"))
+        for l in newUser_db:
+            file.write(l)
 
     if not changed:
         CTkMessagebox.CTkMessagebox(
@@ -353,12 +375,9 @@ def changePass(user, oldPassword, newPassword):
             option_1="Ok"
         )
 
-# ------------------------------------------
-# Mudar Email
-# ------------------------------------------
 def changeMail(user, oldPassword, newMail):
     """
-    Altera o email do 'user' (se a password for correta e o newMail for válido).
+    Altera o email do 'user' (se a oldPassword for correta e newMail for válido).
     """
     validMail = emailChecker(newMail)
     if validMail != "True":
@@ -378,15 +397,18 @@ def changeMail(user, oldPassword, newMail):
         campos = line.strip().split(";")
         if len(campos) < 4:
             continue
+
         if campos[0] == user and campos[1] == oldPassword:
-            newUser_db.append(campos[0] + ";" + campos[1] + ";" + newMail + ";" + campos[3] + "\n")
+            newUser_db.append(campos[0] + ";" + campos[1] + ";" + newMail + ";" + campos[3] + ";" + (campos[4] if len(campos) > 4 else "") + "\n")
             changed = True
         else:
+            if not line.endswith("\n"):
+                line += "\n"
             newUser_db.append(line)
 
     with open(user_db, "w", encoding="utf-8") as file:
-        for line in newUser_db:
-            file.write(line if line.endswith("\n") else (line + "\n"))
+        for l in newUser_db:
+            file.write(l)
 
     if not changed:
         CTkMessagebox.CTkMessagebox(
@@ -396,37 +418,40 @@ def changeMail(user, oldPassword, newMail):
             option_1="Ok"
         )
 
-
-import os
-
+# ------------------------------------------------------------------------
+#     FUNÇÕES PARA ADMINISTRADOR: set_admin / block_user / remove_user
+# ------------------------------------------------------------------------
 def set_admin(username):
     """
-    Marca o estado do usuário como 'admin' (ou define um flag).
-    Necessário ter algo como userinfo.txt em users/<username>/
+    Marca o utilizador com 'role=Admin' no ficheiro user_db.
     """
     user_list = lerFicheiro(user_db)
     new_user_list = []
+
     for line in user_list:
-        if line!="Username;Password;Email;User/Admin\n":
+        if line != "Username;Password;Email;User/Admin\n":
             campos = line.split(";")
-            if campos[0] == username:
+            # Espera-se que existam 5 campos (username, pass, email, role, data)
+            if len(campos) >= 4 and campos[0] == username:
                 campos[3] = "Admin"
-            new_user_list.append(campos[0]+";"+campos[1]+";"+campos[2]+";"+campos[3]+";"+campos[4])
+            new_line = ";".join(campos)
+            new_user_list.append(new_line)
         else:
+            # Linha de cabeçalho, mantemos igual
             new_user_list.append(line)
 
-    file = open(user_db, "w")
-    for line in new_user_list:
-        file.write(line)
-    file.close()
+    with open(user_db, "w", encoding="utf-8") as file:
+        for line in new_user_list:
+            if not line.endswith("\n"):
+                line += "\n"
+            file.write(line)
 
     print(f"Usuário {username} promovido a admin.")
 
-
 def block_user(username, dias=15):
     """
-    Marca o estado do usuário como 'bloqueado' e, opcionalmente,
-    armazena a data de bloqueio ou algo assim. Exemplo simples:
+    Marca o estado do utilizador como 'bloqueado' no ficheiro ./files/users/<username>/userinfo.txt,
+    adicionando/injetando a linha 'estado=bloqueado'.
     """
     users_dir = os.path.join(".", "files", "users")
     user_folder = os.path.join(users_dir, username)
@@ -448,72 +473,54 @@ def block_user(username, dias=15):
             found_estado = True
         else:
             new_content.append(ln)
+
     if not found_estado:
         new_content.append("estado=bloqueado\n")
 
     with open(userinfo_path, "w", encoding="utf-8") as f:
         f.writelines(new_content)
 
-    print(f"Usuário {username} bloqueado por {dias} dias (exemplo).")
-
+    print(f"Utilizador {username} bloqueado por {dias} dias.")
 
 def remove_user(username):
     """
-    Remove a pasta do usuário e todo o conteúdo.
-    **CUIDADO**: isso apaga os dados desse user permanentemente!
+    Remove a pasta do utilizador (./files/users/<username>) e o seu conteúdo.
+    Atenção: isto apaga permanentemente os dados desse utilizador.
     """
-    import shutil
     users_dir = os.path.join(".", "files", "users")
     user_folder = os.path.join(users_dir, username)
     if os.path.exists(user_folder):
-        shutil.rmtree(user_folder)  # apaga tudo
+        shutil.rmtree(user_folder)
         print(f"Usuário {username} removido completamente!")
     else:
         print(f"Usuário {username} não existe.")
 
-
-def get_all_users():
-    """
-    Lê cada subpasta em ./files/users e tenta ler um arquivo userinfo.txt
-    para descobrir o 'username', 'email' e 'estado'.
-    Retorna lista de dicionários: [{"username":..., "email":..., "estado":...}, ...]
-    """
-    user_list = lerFicheiro(user_db)
-    new_user_list = []
-
-    for line in user_list:
-        if line != "Username;Password;Email;User/Admin\n":
-            campos = line.split(";")
-            new_user_list.append({"username": campos[0], "email": campos[2], "estado": campos[3]})
-
-    return new_user_list
-
-# ------------------------------------------
-# Favoritos
-# ------------------------------------------
+# ------------------------------------------------------------------------
+#             FUNÇÕES DE GESTÃO DE FAVORITOS, RATINGS, ETC.
+# ------------------------------------------------------------------------
 def addFavorite(user, item):
     """
-    Adiciona 'item' à lista de favoritos do 'user'.
+    Adiciona 'item' ao ficheiro favorites.txt do utilizador.
+    Se o ficheiro não existir, é criado.
     """
-    # Cria pasta user_data se não existir
-    if not os.path.isdir(f".\\files\\user_data\\{user}"):
-        os.makedirs(f".\\files\\user_data\\{user}")
+    user_data_dir = f".\\files\\user_data\\{user}"
+    if not os.path.isdir(user_data_dir):
+        os.makedirs(user_data_dir)
 
-    favorites_file = f".\\files\\user_data\\{user}\\favorites.txt"
-    # Cria o ficheiro se não existir
+    favorites_file = os.path.join(user_data_dir, "favorites.txt")
     if not os.path.isfile(favorites_file):
-        open(favorites_file, 'w').close()
+        open(favorites_file, 'w').close()  # cria ficheiro vazio
 
     with open(favorites_file, 'a', encoding="utf-8") as file:
         file.write(item + "\n")
 
 def removeFavorite(user, item):
     """
-    Remove 'item' da lista de favoritos do 'user'.
+    Remove 'item' do ficheiro favorites.txt do utilizador, se existir.
     """
     favorites_file = f".\\files\\user_data\\{user}\\favorites.txt"
     if not os.path.exists(favorites_file):
-        return  # Se não existe, não há nada para remover
+        return
 
     favoritesList = lerFicheiro(favorites_file)
     newFavoritesList = []
@@ -522,70 +529,66 @@ def removeFavorite(user, item):
         if line.strip() != item:
             newFavoritesList.append(line)
 
-    # Reescreve o ficheiro de favoritos
     with open(favorites_file, "w", encoding="utf-8") as file:
-        for line in newFavoritesList:
-            file.write(line if line.endswith("\n") else (line + "\n"))
+        for l in newFavoritesList:
+            if not l.endswith("\n"):
+                l += "\n"
+            file.write(l)
 
-# ------------------------------------------
-# Ratings
-# ------------------------------------------
 def addRating(user, item, rating):
     """
-    Adiciona rating a 'item'.
-    Ex.: rating entre 0 e 5 (string ou int).
-    Ficheiro: .\\files\\catalog_data\\{item}\\reviews.txt
-    Formato: "user;rating"
+    Grava um rating para 'item' no ficheiro:
+      .\\files\\catalog_data\\{item}\\reviews.txt
+    Formato de cada linha: "user;rating"
     """
-    if not os.path.isdir(f".\\files\\catalog_data\\{item}"):
-        os.makedirs(f".\\files\\catalog_data\\{item}")
+    item_dir = f".\\files\\catalog_data\\{item}"
+    if not os.path.isdir(item_dir):
+        os.makedirs(item_dir)
 
-    reviews_file = f".\\files\\catalog_data\\{item}\\reviews.txt"
+    reviews_file = os.path.join(item_dir, "reviews.txt")
     if not os.path.isfile(reviews_file):
         open(reviews_file, 'w').close()
 
     with open(reviews_file, 'a', encoding="utf-8") as file:
         file.write(f"{user};{rating}\n")
 
-# ------------------------------------------
-# Comentários
-# ------------------------------------------
 def addComment(user, item, comment):
     """
-    Adiciona comentário a 'item'.
-    Formato: "user;comentário"
+    Adiciona um comentário a 'item' no ficheiro:
+      .\\files\\catalog_data\\{item}\\comments.txt
+    Formato de cada linha: "user;comentário"
     """
-    if not os.path.isdir(f".\\files\\catalog_data\\{item}"):
-        os.makedirs(f".\\files\\catalog_data\\{item}")
+    item_dir = f".\\files\\catalog_data\\{item}"
+    if not os.path.isdir(item_dir):
+        os.makedirs(item_dir)
 
-    comments_file = f".\\files\\catalog_data\\{item}\\comments.txt"
+    comments_file = os.path.join(item_dir, "comments.txt")
     if not os.path.isfile(comments_file):
         open(comments_file, 'w').close()
 
     with open(comments_file, 'a', encoding="utf-8") as file:
         file.write(f"{user};{comment}\n")
 
-# ------------------------------------------
-# Likes
-# ------------------------------------------
 def addLike(user, item, like):
-    if not os.path.isdir(f".\\files\\user_data\\{user}"):
-        os.makedirs(f".\\files\\user_data\\{user}")
+    """
+    Grava um 'like' (ou uma espécie de flag) para 'item' no ficheiro:
+      .\\files\\user_data\\{user}\\likes.txt
+    Formato de cada linha: "item;like"
+    """
+    user_data_dir = f".\\files\\user_data\\{user}"
+    if not os.path.isdir(user_data_dir):
+        os.makedirs(user_data_dir)
 
-    likes_file = f".\\files\\user_data\\{user}\\likes.txt"
+    likes_file = os.path.join(user_data_dir, "likes.txt")
     if not os.path.isfile(likes_file):
         open(likes_file, 'w').close()
 
     with open(likes_file, 'a', encoding="utf-8") as file:
         file.write(f"{item};{like}\n")
 
-# ------------------------------------------
-# Notificações (placeholder)
-# ------------------------------------------
 def notificationRead(id):
     """
     Marca a notificação 'id' como lida.
-    Ex.: isto dependerá da forma como guardas as notificações.
+    (Placeholder - implementar de acordo com a lógica real de notificações)
     """
-    # TODO: Implementar de acordo com a tua lógica de notificações
     pass
