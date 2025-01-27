@@ -503,6 +503,21 @@ def remove_user(username):
     else:
         print(f"Usuário {username} não existe.")
 
+    user_list = lerFicheiro(user_db)
+    new_user_list = []
+    for line in user_list:
+        campos = line.strip().split(";")
+        if len(campos) < 4:
+            continue
+        if campos[0] != username:
+            new_user_list.append(line)
+
+    with open(user_db, "w", encoding="utf-8") as file:
+        for line in new_user_list:
+            if not line.endswith("\n"):
+                line += "\n"
+            file.write(line)
+
 # ------------------------------------------------------------------------
 #             FUNÇÕES DE GESTÃO DE FAVORITOS, RATINGS, ETC.
 # ------------------------------------------------------------------------

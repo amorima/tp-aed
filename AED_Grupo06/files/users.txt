@@ -1,4 +1,5 @@
 Username;Password;Email;User/Admin
 AMORIMA;1;1;User;2025-01-27 10:20:02
-ANTONIO ADMIN;2;2;Admin;2025-01-27 10:14:40
-Utilizador Teste;3;3;User;2025-01-26 22:53:58
+ANTONIO ADMIN;2;2;Admin;2025-01-27 10:33:04
+Utilizador Teste;3;3;Admin;2025-01-26 22:53:58
+Gabriel;Gabriel#33;gabriel@;Admin;2025-01-27 10:29:12
