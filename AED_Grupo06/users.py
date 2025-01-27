@@ -160,22 +160,28 @@ def logIn(password, mail, fn_after_login, fn_close_login):
     Tenta fazer login com (password, mail).
     Se as credenciais estiverem corretas, chama:
       - fn_close_login()  (para fechar o ecrã de login)
-      - fn_after_login(username)  (passa o username)
+      - fn_after_login(username, old_date)  (passa o username e a data antiga de login)
     Caso falhe, mostra a mensagem de erro.
     """
-    global user_ativo, username
-    user_ativo = None
+    global user_ativo
 
-    user_data = get_user_data_by_email(mail)
+    user_data = get_user_data_by_email(mail)  # -> (username, db_password, db_email, role, data_login)
     if user_data is not None:
-        # user_data -> (username, db_password, db_email, role, db_date)
         username, db_password, db_email, role, db_date = user_data
+
+        # Armazenamos a data antiga de login ANTES de a atualizar
+        old_date_str = db_date.strip()
+
         if password == db_password:
+            # Credenciais corretas
             user_ativo = username
+
+            # Atualiza a data para a data/hora atual (em users.txt)
             update_login_date(mail)
-            fn_close_login()         # callback para fechar ecrã de login
-            fn_after_login(username) # callback pós-login
+
+            fn_after_login(username, old_date_str)
         else:
+            # Password errada
             CTkMessagebox.CTkMessagebox(
                 title="LogIn",
                 message="Password Incorreta",
@@ -183,12 +189,14 @@ def logIn(password, mail, fn_after_login, fn_close_login):
                 option_1="Ok"
             )
     else:
+        # User não existe
         CTkMessagebox.CTkMessagebox(
             title="LogIn",
             message="User não existe.\nPor favor crie conta.",
             icon="warning",
             option_1="Ok"
         )
+
 
 def sign(user, password, mail, fn_after_sign):
     """
