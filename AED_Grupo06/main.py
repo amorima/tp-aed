@@ -1045,7 +1045,7 @@ def aplicar_filtro_filmes_series(genero, ano, titulo, parent_frame):
     for child in parent_frame.winfo_children():
         child.destroy()
 
-    criar_cards(lista_filtrada, parent_frame, colunas=4)
+    criar_cards(lista_filtrada, parent_frame, colunas=8)
 
 def mostrar_filmes_series(parent_frame):
     global dados_geral
